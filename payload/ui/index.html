@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#073f35">
+  <title>文件快传</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div><div class="eyebrow">XIAOMI SMART STORAGE</div><h1>文件快传</h1></div>
+      <button id="refresh" class="icon-button" type="button" aria-label="刷新">↻</button>
+    </header>
+
+    <section class="hero">
+      <div><span id="serviceBadge" class="status-pill"><i></i>正在连接</span><h2>临时分享服务</h2><p id="endpoint">正在读取访问地址…</p></div>
+      <div class="hero-icon">⇅</div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab active" data-page="create">创建</button>
+      <button class="tab" data-page="records">分享记录</button>
+      <button class="tab" data-page="settings">设置</button>
+    </nav>
+
+    <section id="page-create" class="page active">
+      <article class="panel">
+        <div class="panel-heading"><div><h3>分享类型</h3><p>下载单个文件，或允许朋友上传到指定文件夹。</p></div></div>
+        <div id="kindSwitch" class="segmented"><button class="active" data-kind="download">文件下载</button><button data-kind="upload">上传入口</button></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading"><div><h3 id="targetTitle">选择文件</h3><p id="targetHint">只会开放选中的单个文件。</p></div><button id="browseButton" class="secondary-button" type="button">浏览</button></div>
+        <div id="selectedPath" class="selected-path empty">尚未选择文件</div>
+      </article>
+
+      <article class="panel">
+        <div class="form-grid">
+          <label class="wide"><span>访问密码（可选）</span><input id="password" type="password" minlength="4" maxlength="128" autocomplete="new-password" placeholder="至少 4 位；留空表示无需密码"></label>
+          <div class="wide"><span class="field-title">有效期</span><div id="expiryChoices" class="choice-grid"><button data-value="3600">1 小时</button><button data-value="21600">6 小时</button><button class="active" data-value="86400">1 天</button><button data-value="259200">3 天</button><button data-value="604800">7 天</button></div></div>
+          <label><span id="usesLabel">最多下载次数</span><input id="maxUses" type="number" inputmode="numeric" min="0" max="1000" value="3"></label>
+          <div class="field-note">填写 0 表示有效期内不限次数。每次成功下载或上传计为一次。</div>
+        </div>
+        <button id="createButton" class="primary-button full" type="button">生成临时链接</button>
+      </article>
+      <div class="security-note">公网使用密码时请优先配置 HTTPS。随机链接本身具有访问权限，请勿发送到公开群聊。</div>
+    </section>
+
+    <section id="page-records" class="page">
+      <div class="section-heading"><div><h2>分享记录</h2><p id="recordSummary">正在读取…</p></div></div>
+      <div id="shareList" class="stack loading">正在读取分享记录…</div>
+    </section>
+
+    <section id="page-settings" class="page">
+      <article class="panel">
+        <div class="panel-heading"><div><h3>分享服务</h3><p>内部固定监听 TCP 19092。</p></div></div>
+        <div class="button-row"><button id="startService" class="primary-button" type="button">启动服务</button><button id="stopService" class="danger-button" type="button">停止服务</button></div>
+      </article>
+      <article class="panel">
+        <div class="panel-heading"><div><h3>公网分享地址</h3><p>生成链接时使用；不会自动修改路由器。</p></div></div>
+        <label class="field-label"><span>外部基础地址</span><input id="externalBase" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例如 https://share.example.com 或 http://公网IP:端口"></label>
+        <div id="lanAddress" class="selected-path"></div>
+        <button id="saveSettings" class="primary-button full" type="button">保存地址</button>
+        <div class="warning-note">如果填写 HTTP 公网地址，密码和文件传输不会被加密。建议由路由器或反向代理提供 HTTPS，再转发到设备的 19092 端口。</div>
+      </article>
+      <article class="panel compact"><h3>路由器端口转发</h3><p class="router-help">协议选择 TCP，内网主机填写本设备 IP，内网端口填写 19092；公网端口可以自定义。然后将完整公网地址填写到上方。</p></article>
+    </section>
+
+    <footer id="version">插件版本 1.0.0</footer>
+  </main>
+
+  <div id="modalBackdrop" class="modal-backdrop" hidden></div>
+  <section id="browserModal" class="sheet" role="dialog" aria-modal="true" aria-labelledby="browserTitle" hidden>
+    <div class="sheet-handle"></div>
+    <header class="sheet-header"><div><span class="eyebrow green">设备文件</span><h2 id="browserTitle">选择文件</h2></div><button id="closeBrowser" class="close-button" type="button">×</button></header>
+    <div class="browser-toolbar"><button id="browserBack" type="button">← 上一级</button><span id="browserPath">根目录</span></div>
+    <button id="chooseFolder" class="primary-button choose-folder" type="button" hidden>选择当前文件夹</button>
+    <div id="browserList" class="file-list loading">正在读取…</div>
+  </section>
+
+  <section id="linkModal" class="dialog" role="dialog" aria-modal="true" aria-labelledby="linkTitle" hidden>
+    <div class="success-icon">✓</div><h2 id="linkTitle">链接已生成</h2><p>可以复制后发送给朋友。</p>
+    <textarea id="createdLink" readonly></textarea>
+    <div class="dialog-actions"><button id="closeLink" class="secondary-button" type="button">完成</button><button id="copyCreatedLink" class="primary-button" type="button">复制链接</button></div>
+  </section>
+
+  <section id="confirmModal" class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+    <div class="danger-icon">!</div><h2 id="confirmTitle">确认操作</h2><p id="confirmMessage"></p>
+    <div class="dialog-actions"><button id="confirmCancel" class="secondary-button" type="button">取消</button><button id="confirmAccept" class="danger-button" type="button">确认</button></div>
+  </section>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
