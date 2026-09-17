@@ -16,9 +16,17 @@ if not re.fullmatch(r"u[0-9]+",PLUGIN_USER): PLUGIN_USER=pwd.getpwuid(Path(__fil
 PLUGIN_USER=str(PLUGIN_USER)
 PLUGIN_HOME=Path("/home")/PLUGIN_USER/"plugin/quickshare"
 STATE_DIR=PLUGIN_HOME/"var"
+PORT_FILE=STATE_DIR/"server.port"
 sys.path.insert(0,str(SCRIPT_DIR.parent/"files"))
 from quickshare_lib import ShareError, Store, public_record
 STORE=Store(STATE_DIR,PLUGIN_USER)
+
+def service_port():
+    try: value=int(PORT_FILE.read_text().strip())
+    except (OSError,ValueError): return 19092
+    return value if 1024 <= value <= 65535 else 19092
+
+PORT=service_port()
 
 def header(content_type="application/json; charset=utf-8"):
     print(f"Content-Type: {content_type}\r")
@@ -65,7 +73,7 @@ def lan_ip():
 def base_url():
     external=STORE.get_settings().get("external_base","").strip()
     if external: return external.rstrip("/")
-    return f"http://{lan_ip()}:19092"
+    return f"http://{lan_ip()}:{PORT}"
 
 def running():
     try:
@@ -87,9 +95,9 @@ try:
     data=body(); base=base_url()
     if action=="status":
         is_running,pid=running(); records=STORE.list(); active=sum(1 for item in records if Store.status(item)=="active")
-        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.0.0")
-        except Exception: version="1.0.0"
-        respond({"ok":True,"running":is_running,"pid":pid,"port":19092,"lanUrl":f"http://{lan_ip()}:19092","baseUrl":base,"activeShares":active,"totalShares":len(records),"pluginVersion":version})
+        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.1.0")
+        except Exception: version="1.1.0"
+        respond({"ok":True,"running":is_running,"pid":pid,"port":PORT,"lanUrl":f"http://{lan_ip()}:{PORT}","baseUrl":base,"activeShares":active,"totalShares":len(records),"pluginVersion":version})
     if action=="list": respond({"ok":True,"shares":[public_record(item,base) for item in STORE.list()]})
     if action=="browse": respond({"ok":True,**STORE.browse(data.get("path",""))})
     if action=="create":
@@ -97,7 +105,7 @@ try:
         respond({"ok":True,"share":public_record(record,base)})
     if action=="revoke": STORE.revoke(data.get("id","")); respond({"ok":True})
     if action=="settings_get":
-        settings=STORE.get_settings(); respond({"ok":True,"externalBase":settings.get("external_base",""),"lanUrl":f"http://{lan_ip()}:19092","port":19092})
+        settings=STORE.get_settings(); respond({"ok":True,"externalBase":settings.get("external_base",""),"lanUrl":f"http://{lan_ip()}:{PORT}","port":PORT})
     if action=="settings_save":
         settings=STORE.save_settings(data.get("externalBase","")); respond({"ok":True,"externalBase":settings["external_base"],"baseUrl":base_url()})
     if action=="server_start": control("start"); respond({"ok":True})

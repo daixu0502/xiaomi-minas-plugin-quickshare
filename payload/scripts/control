@@ -5,7 +5,8 @@ PLUGIN_USER=${PLUG_USER:-$(printf '%s\n' "$SCRIPT_PATH" | sed -n 's#^/home/\(u[0
 case "$PLUGIN_USER" in u[0-9]*) ;; *) exit 1 ;; esac
 PLUGIN_HOME=${PLUG_HOME_DIR:-/home/$PLUGIN_USER/plugin/quickshare}
 SRC_DIR=${PLUG_SRC_DIR:-$(readlink "$PLUGIN_HOME/src" 2>/dev/null || true)}
-VAR_DIR="$PLUGIN_HOME/var"; PID_FILE="$VAR_DIR/server.pid"; LOG_FILE="$VAR_DIR/server.log"; SERVER="$SRC_DIR/files/quickshare_server.py"; PORT=19092
+VAR_DIR="$PLUGIN_HOME/var"; PID_FILE="$VAR_DIR/server.pid"; LOG_FILE="$VAR_DIR/server.log"; SERVER="$SRC_DIR/files/quickshare_server.py"; PORT_FILE="$VAR_DIR/server.port"; PORT=$(tr -d '[:space:]' < "$PORT_FILE" 2>/dev/null || true)
+case "$PORT" in ''|*[!0-9]*) PORT=19092 ;; esac
 
 running() {
     [ -s "$PID_FILE" ] || return 1

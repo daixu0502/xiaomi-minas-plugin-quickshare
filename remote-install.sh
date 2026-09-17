@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.0.0; PORT=19092
+PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.1.0
 case "$PLUGIN_USER" in u[0-9]*) ;; *) echo "错误：无效插件用户" >&2; exit 1 ;; esac
 [ "$(id -u)" = 0 ] || { echo "错误：必须以 root 身份运行" >&2; exit 1; }
 for cmd in jq python3 sha256sum plugincenter flock runuser ss; do command -v "$cmd" >/dev/null 2>&1 || { echo "错误：缺少 $cmd" >&2; exit 1; }; done
@@ -13,9 +13,16 @@ SRC_PARENT="$POOL/pluginsrc"; TMP_PARENT="$POOL/plugintmp"; SRC="$SRC_PARENT/$PL
 WEB_ROOT=$(jq -r '.settings.nginx_plugin // "/data/plugin/www"' /etc/config/plugin); WEB_DIR="$WEB_ROOT/$PLUGIN_USER"; WEB_LINK="$WEB_DIR/$PLUGIN_NAME"
 ICON_DIR=/data/plugin/www/icon; ICON="$ICON_DIR/$PLUGIN_NAME.icon"; LOCK="/data/plugin/.$PLUGIN_USER.$PLUGIN_NAME.lock"; CRON="/etc/cron.d/quickshare-$PLUGIN_USER"
 
-if [ -x "$SCRIPTS/control" ]; then PLUG_USER="$PLUGIN_USER" PLUG_HOME_DIR="$HOME_DIR" PLUG_SRC_DIR="$SRC" "$SCRIPTS/control" stop >/dev/null 2>&1 || true; fi
-if ss -lnt 2>/dev/null | grep -q ":$PORT "; then echo "错误：端口 $PORT 已被其他服务占用" >&2; exit 1; fi
 mkdir -p "$ROOT" "$HOME_DIR" "$VAR" "$SCRIPTS" "$SRC_PARENT" "$TMP_PARENT" "$WEB_DIR" "$ICON_DIR"
+if [ -x "$SCRIPTS/control" ]; then PLUG_USER="$PLUGIN_USER" PLUG_HOME_DIR="$HOME_DIR" PLUG_SRC_DIR="$SRC" "$SCRIPTS/control" stop >/dev/null 2>&1 || true; fi
+PORT_FILE="$VAR/server.port"; PORT=""
+port_in_use(){ ss -lntH 2>/dev/null | awk -v suffix=":$1" '$4 ~ suffix "$" {found=1} END {exit !found}'; }
+port_reserved(){ for f in /home/u*/plugin/quickshare/var/server.port; do [ -f "$f" ] || continue; [ "$f" = "$PORT_FILE" ] && continue; [ "$(tr -d '[:space:]' < "$f")" = "$1" ] && return 0; done; return 1; }
+exec 8>/data/plugin/.quickshare-ports.lock; flock -x 8
+if [ -s "$PORT_FILE" ]; then candidate=$(tr -d '[:space:]' < "$PORT_FILE"); case "$candidate" in ''|*[!0-9]*) candidate="" ;; esac; if [ -n "$candidate" ] && [ "$candidate" -ge 1024 ] && [ "$candidate" -le 65535 ] && ! port_in_use "$candidate" && ! port_reserved "$candidate"; then PORT="$candidate"; fi; fi
+candidate=19092; while [ -z "$PORT" ] && [ "$candidate" -le 19191 ]; do if ! port_in_use "$candidate" && ! port_reserved "$candidate"; then PORT="$candidate"; break; fi; candidate=$((candidate+1)); done
+[ -n "$PORT" ] || { echo "错误：19092-19191 没有可用端口" >&2; exit 1; }
+printf '%s\n' "$PORT" > "$PORT_FILE"; chmod 0600 "$PORT_FILE"; flock -u 8
 
 stage="$SRC_PARENT/.$PLUGIN_NAME.new.$$"; old="$SRC_PARENT/.$PLUGIN_NAME.old.$$"; rm -rf "$stage"; mkdir -p "$stage"
 cp -R "$PAYLOAD/files" "$stage/files"; cp -R "$PAYLOAD/ui" "$stage/ui"
@@ -31,7 +38,7 @@ chmod 0600 "$VAR/server.secret" "$VAR/shares.json"
 
 digest="$TMP/digest.$$"; find "$SRC" -type f | LC_ALL=C sort | while IFS= read -r f; do sha256sum "$f" | cut -d ' ' -f 1; done > "$digest"
 abstract=$(sha256sum "$digest" | cut -d ' ' -f 1); rm -f "$digest"; size=$(du -sk "$SRC" | awk '{print $1*1024}'); now=$(date +%s)
-jq -n --arg version "$PLUGIN_VERSION" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"首个版本：临时下载、上传入口、分享记录与一键失效",system:false,size:$size,port:"19092",type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
+jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"支持多用户安装并为每位用户自动分配独立服务端口",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
 
 rm -f "$WEB_LINK"; ln -s "$SRC/ui" "$WEB_LINK"
 python3 "$PAYLOAD/make_icon.py" "$ICON"; chmod 0644 "$ICON"

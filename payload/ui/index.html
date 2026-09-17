@@ -57,7 +57,7 @@
 
     <section id="page-settings" class="page">
       <article class="panel">
-        <div class="panel-heading"><div><h3>分享服务</h3><p>内部固定监听 TCP 19092。</p></div></div>
+        <div class="panel-heading"><div><h3>分享服务</h3><p>安装时自动分配独立 TCP 端口，避免多用户冲突。</p></div></div>
         <div class="button-row"><button id="startService" class="primary-button" type="button">启动服务</button><button id="stopService" class="danger-button" type="button">停止服务</button></div>
       </article>
       <article class="panel">
@@ -65,12 +65,12 @@
         <label class="field-label"><span>外部基础地址</span><input id="externalBase" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例如 https://share.example.com 或 http://公网IP:端口"></label>
         <div id="lanAddress" class="selected-path"></div>
         <button id="saveSettings" class="primary-button full" type="button">保存地址</button>
-        <div class="warning-note">如果填写 HTTP 公网地址，密码和文件传输不会被加密。建议由路由器或反向代理提供 HTTPS，再转发到设备的 19092 端口。</div>
+        <div class="warning-note">如果填写 HTTP 公网地址，密码和文件传输不会被加密。建议由路由器或反向代理提供 HTTPS，再转发到上方显示的局域网端口。</div>
       </article>
-      <article class="panel compact"><h3>路由器端口转发</h3><p class="router-help">协议选择 TCP，内网主机填写本设备 IP，内网端口填写 19092；公网端口可以自定义。然后将完整公网地址填写到上方。</p></article>
+      <article class="panel compact"><h3>路由器端口转发</h3><p class="router-help">协议选择 TCP，内网主机填写本设备 IP，内网端口使用上方“局域网地址”中的端口；公网端口可以自定义。然后将完整公网地址填写到上方。</p></article>
     </section>
 
-    <footer id="version">插件版本 1.0.0</footer>
+    <footer id="version">插件版本 1.1.0</footer>
   </main>
 
   <div id="modalBackdrop" class="modal-backdrop" hidden></div>
