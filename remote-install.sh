@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.1.0
+PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.1.1
 case "$PLUGIN_USER" in u[0-9]*) ;; *) echo "错误：无效插件用户" >&2; exit 1 ;; esac
 [ "$(id -u)" = 0 ] || { echo "错误：必须以 root 身份运行" >&2; exit 1; }
 for cmd in jq python3 sha256sum plugincenter flock runuser ss; do command -v "$cmd" >/dev/null 2>&1 || { echo "错误：缺少 $cmd" >&2; exit 1; }; done
@@ -38,7 +38,7 @@ chmod 0600 "$VAR/server.secret" "$VAR/shares.json"
 
 digest="$TMP/digest.$$"; find "$SRC" -type f | LC_ALL=C sort | while IFS= read -r f; do sha256sum "$f" | cut -d ' ' -f 1; done > "$digest"
 abstract=$(sha256sum "$digest" | cut -d ' ' -f 1); rm -f "$digest"; size=$(du -sk "$SRC" | awk '{print $1*1024}'); now=$(date +%s)
-jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"支持多用户安装并为每位用户自动分配独立服务端口",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
+jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"修复分享记录页面在小屏幕与长路径场景下向右溢出",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
 
 rm -f "$WEB_LINK"; ln -s "$SRC/ui" "$WEB_LINK"
 python3 "$PAYLOAD/make_icon.py" "$ICON"; chmod 0644 "$ICON"
