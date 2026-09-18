@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.1.1
+PLUGIN_USER=${1:-}; PLUGIN_NAME=quickshare; PLUGIN_VERSION=1.1.7
 case "$PLUGIN_USER" in u[0-9]*) ;; *) echo "错误：无效插件用户" >&2; exit 1 ;; esac
 [ "$(id -u)" = 0 ] || { echo "错误：必须以 root 身份运行" >&2; exit 1; }
 for cmd in jq python3 sha256sum plugincenter flock runuser ss; do command -v "$cmd" >/dev/null 2>&1 || { echo "错误：缺少 $cmd" >&2; exit 1; }; done
@@ -27,7 +27,7 @@ printf '%s\n' "$PORT" > "$PORT_FILE"; chmod 0600 "$PORT_FILE"; flock -u 8
 stage="$SRC_PARENT/.$PLUGIN_NAME.new.$$"; old="$SRC_PARENT/.$PLUGIN_NAME.old.$$"; rm -rf "$stage"; mkdir -p "$stage"
 cp -R "$PAYLOAD/files" "$stage/files"; cp -R "$PAYLOAD/ui" "$stage/ui"
 chmod 0755 "$stage/files/"*.sh "$stage/ui/quickshare.cgi"
-chmod 0644 "$stage/files/"*.py "$stage/ui/index.html" "$stage/ui/app.js" "$stage/ui/style.css" "$stage/ui/config"
+chmod 0644 "$stage/files/"*.py "$stage/ui/index.html" "$stage/ui/app.js" "$stage/ui/client-bridge.js" "$stage/ui/style.css" "$stage/ui/config"
 [ ! -d "$SRC" ] || mv "$SRC" "$old"; mv "$stage" "$SRC"; [ ! -d "$old" ] || rm -rf "$old"
 cp "$PAYLOAD/scripts/control" "$SCRIPTS/control"; chmod 0755 "$SCRIPTS/control"
 rm -f "$HOME_DIR/src" "$HOME_DIR/tmp"; ln -s "$SRC" "$HOME_DIR/src"; mkdir -p "$TMP"; ln -s "$TMP" "$HOME_DIR/tmp"
@@ -38,7 +38,7 @@ chmod 0600 "$VAR/server.secret" "$VAR/shares.json"
 
 digest="$TMP/digest.$$"; find "$SRC" -type f | LC_ALL=C sort | while IFS= read -r f; do sha256sum "$f" | cut -d ' ' -f 1; done > "$digest"
 abstract=$(sha256sum "$digest" | cut -d ' ' -f 1); rm -f "$digest"; size=$(du -sk "$SRC" | awk '{print $1*1024}'); now=$(date +%s)
-jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"修复分享记录页面在小屏幕与长路径场景下向右溢出",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
+jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"修复电脑端底部遮挡并优化按钮和文字尺寸",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
 
 rm -f "$WEB_LINK"; ln -s "$SRC/ui" "$WEB_LINK"
 python3 "$PAYLOAD/make_icon.py" "$ICON"; chmod 0644 "$ICON"

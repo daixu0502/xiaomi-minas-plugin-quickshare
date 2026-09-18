@@ -43,6 +43,7 @@ def error(message): respond({"ok":False,"error":str(message)})
 def serve_static():
     uri=os.environ.get("REQUEST_URI","/index.html").split("?",1)[0]
     if uri.endswith("/app.js"): name,mime="app.js","application/javascript; charset=utf-8"
+    elif uri.endswith("/client-bridge.js"): name,mime="client-bridge.js","application/javascript; charset=utf-8"
     elif uri.endswith("/style.css"): name,mime="style.css","text/css; charset=utf-8"
     else: name,mime="index.html","text/html; charset=utf-8"
     header(mime)
@@ -95,8 +96,8 @@ try:
     data=body(); base=base_url()
     if action=="status":
         is_running,pid=running(); records=STORE.list(); active=sum(1 for item in records if Store.status(item)=="active")
-        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.1.1")
-        except Exception: version="1.1.1"
+        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.1.7")
+        except Exception: version="1.1.7"
         respond({"ok":True,"running":is_running,"pid":pid,"port":PORT,"lanUrl":f"http://{lan_ip()}:{PORT}","baseUrl":base,"activeShares":active,"totalShares":len(records),"pluginVersion":version})
     if action=="list": respond({"ok":True,"shares":[public_record(item,base) for item in STORE.list()]})
     if action=="browse": respond({"ok":True,**STORE.browse(data.get("path",""))})
