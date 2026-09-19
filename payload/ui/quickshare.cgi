@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
+sys.dont_write_bytecode=True
 SCRIPT_DIR=Path(__file__).resolve().parent
 match=re.search(r"/nas/pool[^/]+/(u[0-9]+)/plugin/pluginsrc/quickshare/ui$",str(SCRIPT_DIR))
 PLUGIN_USER=match.group(1) if match else os.environ.get("USER","")
