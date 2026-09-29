@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_NAME='quickshare'
 PLUGIN_LABEL='文件快传'
-PLUGIN_VERSION='1.1.20'
+PLUGIN_VERSION='1.1.21'
 UNINSTALL_NOTE='停止该用户的分享服务，现有分享链接失效；分享记录先备份，已上传的用户文件保留。'
 
 # Shared frontend; keep this section consistent across the four manage.sh files.
@@ -491,7 +491,7 @@ printf '%s\n' "$PORT" > "$PORT_FILE"; chmod 0600 "$PORT_FILE"; flock -u 8
 stage="$SRC_PARENT/.$PLUGIN_NAME.new.$$"; old="$SRC_PARENT/.$PLUGIN_NAME.old.$$"; rm -rf "$stage"; mkdir -p "$stage"
 cp -R "$PAYLOAD/files" "$stage/files"; cp -R "$PAYLOAD/ui" "$stage/ui"
 chmod 0755 "$stage/files/"*.sh "$stage/ui/quickshare.cgi"
-chmod 0644 "$stage/files/"*.py "$stage/ui/index.html" "$stage/ui/app.js" "$stage/ui/client-bridge.js" "$stage/ui/style.css" "$stage/ui/modal.css" "$stage/ui/config"
+chmod 0644 "$stage/files/"*.py "$stage/ui/index.html" "$stage/ui/app.js" "$stage/ui/client-bridge.js" "$stage/ui/style.css" "$stage/ui/palette.css" "$stage/ui/modal.css" "$stage/ui/config"
 find "$stage" -type d -name __pycache__ -prune -exec rm -rf {} \;
 [ ! -d "$SRC" ] || mv "$SRC" "$old"; mv "$stage" "$SRC"; [ ! -d "$old" ] || rm -rf "$old"
 cp "$PAYLOAD/scripts/control" "$SCRIPTS/control"; chmod 0755 "$SCRIPTS/control"

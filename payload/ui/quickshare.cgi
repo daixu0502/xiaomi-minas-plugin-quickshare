@@ -20,7 +20,6 @@ STATE_DIR=PLUGIN_HOME/"var"
 PORT_FILE=STATE_DIR/"server.port"
 sys.path.insert(0,str(SCRIPT_DIR.parent/"files"))
 from quickshare_lib import ShareError, Store, public_record
-STORE=Store(STATE_DIR,PLUGIN_USER)
 
 def service_port():
     try: value=int(PORT_FILE.read_text().strip())
@@ -46,6 +45,7 @@ def serve_static():
     if uri.endswith("/app.js"): name,mime="app.js","application/javascript; charset=utf-8"
     elif uri.endswith("/client-bridge.js"): name,mime="client-bridge.js","application/javascript; charset=utf-8"
     elif uri.endswith("/style.css"): name,mime="style.css","text/css; charset=utf-8"
+    elif uri.endswith("/palette.css"): name,mime="palette.css","text/css; charset=utf-8"
     elif uri.endswith("/modal.css"): name,mime="modal.css","text/css; charset=utf-8"
     else: name,mime="index.html","text/html; charset=utf-8"
     header(mime)
@@ -94,12 +94,13 @@ def control(command):
 action=action_name()
 if not action: serve_static()
 if os.environ.get("REQUEST_METHOD","GET")!="POST": error("API 仅接受 POST 请求")
+STORE=Store(STATE_DIR,PLUGIN_USER)
 try:
     data=body(); base=base_url()
     if action=="status":
         is_running,pid=running(); records=STORE.list(); active=sum(1 for item in records if Store.status(item)=="active")
-        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.1.20")
-        except Exception: version="1.1.20"
+        try: version=json.loads((PLUGIN_HOME/"INFO").read_text()).get("version","1.1.21")
+        except Exception: version="1.1.21"
         respond({"ok":True,"running":is_running,"pid":pid,"port":PORT,"lanUrl":f"http://{lan_ip()}:{PORT}","baseUrl":base,"activeShares":active,"totalShares":len(records),"pluginVersion":version})
     if action=="list": respond({"ok":True,"shares":[public_record(item,base) for item in STORE.list()]})
     if action=="browse": respond({"ok":True,**STORE.browse(data.get("path",""))})
