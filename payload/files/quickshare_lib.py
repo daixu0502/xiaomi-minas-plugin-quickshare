@@ -191,6 +191,24 @@ class Store:
             raise ShareError("分享记录不存在")
         return self.mutate(update)
 
+    def delete(self, record_id):
+        record_id = str(record_id or "")
+        if not record_id: raise ShareError("请选择要删除的分享记录")
+        def update(data):
+            for index, record in enumerate(data["shares"]):
+                if hmac.compare_digest(str(record.get("id", "")), record_id):
+                    del data["shares"][index]
+                    return True
+            raise ShareError("分享记录不存在")
+        return self.mutate(update)
+
+    def clear(self):
+        def update(data):
+            count = len(data["shares"])
+            data["shares"] = []
+            return count
+        return self.mutate(update)
+
     def get_settings(self):
         return dict(self.read().get("settings") or {})
 

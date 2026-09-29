@@ -29,12 +29,55 @@ function createShare(){var password=id('password').value,maxUses=Number(id('maxU
 function copyText(value){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(value);var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();var ok=document.execCommand('copy');document.body.removeChild(area);return ok?Promise.resolve():Promise.reject(new Error('复制失败'))}
 
 function loadShares(){var list=id('shareList');list.className='stack loading';list.textContent='正在读取分享记录…';return request('list').then(function(data){state.shares=data.shares||[];renderShares()}).catch(function(error){list.textContent=error.message;toast(error.message,true)})}
-function renderShares(){var list=id('shareList');list.textContent='';list.className='stack';if(!state.shares.length){list.className='stack empty-state';list.textContent='还没有分享记录。';return}state.shares.forEach(function(share){var card=el('article','share-card');var head=el('div','share-head'),title=el('div','share-title');title.appendChild(el('h3','',share.name));title.appendChild(el('p','',share.path));head.appendChild(title);head.appendChild(el('span','badge'+(share.status==='active'?'':' inactive'),statusText(share.status)));card.appendChild(head);var meta=el('div','share-meta');meta.appendChild(el('span','chip',share.kind==='download'?'下载分享':'上传入口'));meta.appendChild(el('span','chip',share.password_protected?'密码保护':'无密码'));meta.appendChild(el('span','chip','已使用 '+share.uses+(share.max_uses?'/'+share.max_uses:'/不限')));meta.appendChild(el('span','chip','到期 '+formatTime(share.expires_at)));if(share.last_used_at)meta.appendChild(el('span','chip','最近 '+formatTime(share.last_used_at)));card.appendChild(meta);var actions=el('div','share-actions');var copy=el('button','','复制链接');copy.type='button';copy.addEventListener('click',function(){copyText(share.url).then(function(){toast('链接已复制')}).catch(function(error){toast(error.message,true)})});actions.appendChild(copy);var open=el('a','','打开');open.href=share.url;open.target='_blank';open.rel='noreferrer';actions.appendChild(open);if(share.status==='active'){var revoke=el('button','revoke','立即失效');revoke.type='button';revoke.addEventListener('click',function(){confirmAction('使分享失效','失效后原链接将立即无法访问，是否继续？',function(){request('revoke',{id:share.id}).then(function(){toast('分享已失效');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)})})});actions.appendChild(revoke)}card.appendChild(actions);list.appendChild(card)})}
+function renderShares(){
+  var list=id('shareList');
+  list.textContent='';list.className='stack';
+  id('clearShares').hidden=!state.shares.length;
+  if(!state.shares.length){list.className='stack empty-state';list.textContent='还没有分享记录。';return}
+  state.shares.forEach(function(share){
+    var card=el('article','share-card');
+    var head=el('div','share-head'),title=el('div','share-title');
+    title.appendChild(el('h3','',share.name));title.appendChild(el('p','',share.path));
+    head.appendChild(title);
+    head.appendChild(el('span','badge'+(share.status==='active'?'':' inactive'),statusText(share.status)));
+    card.appendChild(head);
+    var meta=el('div','share-meta');
+    meta.appendChild(el('span','chip',share.kind==='download'?'下载分享':'上传入口'));
+    meta.appendChild(el('span','chip',share.password_protected?'密码保护':'无密码'));
+    meta.appendChild(el('span','chip','已使用 '+share.uses+(share.max_uses?'/'+share.max_uses:'/不限')));
+    meta.appendChild(el('span','chip','到期 '+formatTime(share.expires_at)));
+    if(share.last_used_at)meta.appendChild(el('span','chip','最近 '+formatTime(share.last_used_at)));
+    card.appendChild(meta);
+    var actions=el('div','share-actions');
+    var copy=el('button','','复制链接');copy.type='button';
+    copy.addEventListener('click',function(){copyText(share.url).then(function(){toast('链接已复制')}).catch(function(error){toast(error.message,true)})});
+    actions.appendChild(copy);
+    var open=el('a','','打开');open.href=share.url;open.target='_blank';open.rel='noreferrer';actions.appendChild(open);
+    if(share.status==='active'){
+      var revoke=el('button','revoke','立即失效');revoke.type='button';
+      revoke.addEventListener('click',function(){confirmAction('使分享失效','失效后原链接将立即无法访问，是否继续？',function(){request('revoke',{id:share.id}).then(function(){toast('分享已失效');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)})})});
+      actions.appendChild(revoke);
+    }
+    var remove=el('button','revoke','删除记录');remove.type='button';
+    remove.addEventListener('click',function(){
+      confirmAction('删除分享记录',share.status==='active'?'删除后该分享链接将立即失效，记录无法恢复；原文件不会删除。是否继续？':'记录删除后无法恢复；原文件不会删除。是否继续？',function(){
+        request('delete',{id:share.id}).then(function(){toast('记录已删除');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)});
+      });
+    });
+    actions.appendChild(remove);
+    card.appendChild(actions);list.appendChild(card);
+  });
+}
 
 document.querySelectorAll('.tab').forEach(function(tab){tab.addEventListener('click',function(){activatePage(tab.dataset.page)})});
 document.querySelectorAll('#kindSwitch button').forEach(function(button){button.addEventListener('click',function(){updateKind(button.dataset.kind)})});
 document.querySelectorAll('#expiryChoices button').forEach(function(button){button.addEventListener('click',function(){state.expiry=Number(button.dataset.value);document.querySelectorAll('#expiryChoices button').forEach(function(item){item.classList.toggle('active',item===button)})})});
 id('refresh').addEventListener('click',function(){loadStatus(true);loadShares()});id('browseButton').addEventListener('click',openBrowser);id('browserBack').addEventListener('click',function(){browse(parentPath(state.browsePath))});id('chooseFolder').addEventListener('click',function(){selectPath(state.browsePath)});id('closeBrowser').addEventListener('click',closeModal);id('createButton').addEventListener('click',createShare);id('closeLink').addEventListener('click',closeModal);id('copyCreatedLink').addEventListener('click',function(){copyText(id('createdLink').value).then(function(){toast('链接已复制');closeModal()}).catch(function(error){toast(error.message,true)})});
+id('clearShares').addEventListener('click',function(){
+  confirmAction('清空分享记录','将删除全部分享记录，所有仍有效的链接会立即失效。此操作无法恢复，但不会删除原文件或已上传的文件。是否继续？',function(){
+    request('clear').then(function(data){toast('已清空 '+data.deleted+' 条记录');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)});
+  });
+});
 id('modalBackdrop').addEventListener('click',function(){if(modalType==='confirmModal'){confirmCallback=null}closeModal()});id('confirmCancel').addEventListener('click',function(){confirmCallback=null;closeModal()});id('confirmAccept').addEventListener('click',function(){var callback=confirmCallback;confirmCallback=null;closeModal();if(callback)callback()});
 id('saveSettings').addEventListener('click',function(){var value=id('externalBase').value.trim();if(value&&!/^https?:\/\//i.test(value)){toast('请输入完整的 HTTP 或 HTTPS 地址',true);return}var button=this;button.disabled=true;request('settings_save',{externalBase:value}).then(function(data){toast('公网分享地址已保存');id('endpoint').textContent=data.baseUrl;loadShares()}).catch(function(error){toast(error.message,true)}).finally(function(){button.disabled=false})});
 id('startService').addEventListener('click',function(){var button=this;button.disabled=true;request('server_start').then(function(){toast('分享服务已启动');return loadStatus(false)}).catch(function(error){toast(error.message,true)}).finally(function(){button.disabled=false})});id('stopService').addEventListener('click',function(){confirmAction('停止分享服务','停止后所有临时链接都会暂时无法访问，但分享记录不会删除。',function(){request('server_stop').then(function(){toast('分享服务已停止');loadStatus(false)}).catch(function(error){toast(error.message,true)})})});

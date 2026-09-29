@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#073f35">
   <title>文件快传</title>
-  <link rel="stylesheet" href="style.css?v=1.1.10">
-  <link rel="stylesheet" href="modal.css?v=1.1.10">
+  <link rel="stylesheet" href="style.css?v=1.1.16">
+  <link rel="stylesheet" href="modal.css?v=1.1.16">
 </head>
 <body>
   <main class="shell">
@@ -51,8 +51,8 @@
       <div class="security-note">公网使用密码时请优先配置 HTTPS。随机链接本身具有访问权限，请勿发送到公开群聊。</div>
     </section>
 
-    <section id="page-records" class="page">
-      <div class="section-heading"><div><h2>分享记录</h2><p id="recordSummary">正在读取…</p></div></div>
+    <section id="page-records" class="page" aria-label="分享记录">
+      <div class="section-heading section-toolbar records-heading"><div><h2>分享记录</h2><p id="recordSummary">正在读取…</p></div><button id="clearShares" class="danger-button" type="button" hidden>清空记录</button></div>
       <div id="shareList" class="stack loading">正在读取分享记录…</div>
     </section>
 
@@ -71,7 +71,7 @@
       <article class="panel compact"><h3>路由器端口转发</h3><p class="router-help">协议选择 TCP，内网主机填写本设备 IP，内网端口使用上方“局域网地址”中的端口；公网端口可以自定义。然后将完整公网地址填写到上方。</p></article>
     </section>
 
-    <footer id="version">插件版本 1.1.10</footer>
+    <footer id="version">插件版本 1.1.16</footer>
   </main>
 
   <div id="modalBackdrop" class="modal-backdrop" hidden></div>
@@ -95,8 +95,8 @@
   </section>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="client-bridge.js?v=1.1.10"></script>
-  <script src="app.js"></script>
+  <script src="client-bridge.js?v=1.1.16"></script>
+  <script src="app.js?v=1.1.16"></script>
   <script>
     (function () {
       var root = document.documentElement, body = document.body;
