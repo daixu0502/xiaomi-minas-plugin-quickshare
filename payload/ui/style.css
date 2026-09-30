@@ -106,8 +106,10 @@
 [data-minas-plugin="quickshare"] .share-actions > *{flex: 1 1 90px; text-align: center;}
 [data-minas-plugin="quickshare"] .shell{padding-left: max(13px,env(safe-area-inset-left)); padding-right: max(13px,env(safe-area-inset-right));}
 }
-[data-minas-plugin="quickshare"] .records-heading{min-width: 0px; flex-wrap: wrap;}
-[data-minas-plugin="quickshare"] .records-heading > div{min-width: 0px;}
+[data-minas-plugin="quickshare"] .section-heading.section-toolbar.records-heading{min-width: 0px; min-height: 40px; flex-wrap: wrap; padding: 0px; margin-bottom: 12px; border: 0px; border-radius: 0px; background: transparent; box-shadow: none;}
+[data-minas-plugin="quickshare"] .records-heading > .records-title{display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; min-width: 0px;}
+[data-minas-plugin="quickshare"] .section-heading.records-heading .records-title h2{display: block; margin: 0px; font-size: 17px; line-height: 1.5;}
+[data-minas-plugin="quickshare"] #recordSummary{margin: 0px; font-size: 13px; line-height: 1.5; color: var(--muted);}
 [data-minas-plugin="quickshare"] .records-heading .danger-button{flex: 0 0 auto; min-height: 36px; padding: 7px 11px;}
 @media (prefers-color-scheme: dark){
 [data-minas-plugin="quickshare"]:not(.desktop-client) .security-note{color: rgb(227, 199, 117); background: rgb(59, 50, 28);}
