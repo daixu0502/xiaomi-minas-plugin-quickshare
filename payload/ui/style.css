@@ -1,6 +1,8 @@
-/* Plugin-scoped CSS: never style the Xiaomi client host document. */
-[data-minas-plugin="quickshare"]{--green: #07816b; --green-dark: #05604f; --green-soft: #ddf6ed; --navy: #073f35; --bg: #eef7f4; --surface: #fff; --text: #15312d; --muted: #6d817d; --line: #d7e6e1; --red: #c94747; --shadow: 0 12px 38px rgba(20,73,63,.1);}
-@media (prefers-color-scheme: dark) {[data-minas-plugin="quickshare"]:not(.desktop-client){--bg: #0e1816; --surface: #182522; --text: #eef8f5; --muted: #a2b4b0; --line: #30423e; --green: #38c9a6; --green-dark: #68dfc1; --green-soft: #173e34; --navy: #071b17; --red: #f17b7b; --shadow: 0 16px 45px rgba(0,0,0,.25);}}
+/* Plugin-specific components. Shared chrome/theme live in palette.css. */
+[data-minas-plugin="quickshare"]{--navy: #073f35;}
+@media (prefers-color-scheme: dark){
+[data-minas-plugin="quickshare"]:not(.desktop-client){--navy: #071b17;}
+}
 [data-minas-plugin="quickshare"] *{box-sizing: border-box; -webkit-tap-highlight-color: transparent;}
 [data-minas-plugin="quickshare"]{width: 100%; overflow-x: hidden; text-size-adjust: 100%;}
 [data-minas-plugin="quickshare"] .minas-plugin-body{width: 100%; min-height: 100dvh; margin: 0px; overflow-x: hidden; color: var(--text); background: radial-gradient(circle at 105% -5%,rgba(52,211,153,.28),transparent 33rem),linear-gradient(180deg,#073f35 0,#0b5b4d 170px,var(--bg) 340px); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;}
@@ -8,8 +10,6 @@
 [data-minas-plugin="quickshare"] button{cursor: pointer;}
 [data-minas-plugin="quickshare"] [hidden]{display: none !important;}
 [data-minas-plugin="quickshare"] .shell{width: min(100%, 820px); min-height: 100vh; margin: 0px auto; padding: max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(30px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
-[data-minas-plugin="quickshare"] .topbar{display: flex; align-items: center; justify-content: space-between; min-height: 70px; color: rgb(255, 255, 255);}
-[data-minas-plugin="quickshare"] .eyebrow{margin-bottom: 4px; color: rgba(255, 255, 255, 0.62); font-size: 10px; font-weight: 800; letter-spacing: 0.18em;}
 [data-minas-plugin="quickshare"] .eyebrow.green{color: var(--green);}
 [data-minas-plugin="quickshare"] h1, [data-minas-plugin="quickshare"] h2, [data-minas-plugin="quickshare"] h3, [data-minas-plugin="quickshare"] p{margin: 0px;}
 [data-minas-plugin="quickshare"] h1{font-size: 25px;}
@@ -17,20 +17,15 @@
 [data-minas-plugin="quickshare"] h3{font-size: 16px;}
 [data-minas-plugin="quickshare"] p{color: var(--muted); font-size: 13px; line-height: 1.55;}
 [data-minas-plugin="quickshare"] .icon-button{display: grid; place-items: center; width: 43px; height: 43px; padding: 0px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 14px; color: rgb(255, 255, 255); background: rgba(255, 255, 255, 0.11); font-size: 24px; line-height: 1;}
-[data-minas-plugin="quickshare"] .hero{display: flex; align-items: center; justify-content: space-between; min-height: 140px; padding: 22px; border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 23px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(225, 250, 242, 0.94)); box-shadow: var(--shadow);}
-[data-minas-plugin="quickshare"] .hero h2{margin: 13px 0px 5px; font-size: 24px;}
-[data-minas-plugin="quickshare"] .hero p{max-width: 520px; overflow-wrap: anywhere;}
-[data-minas-plugin="quickshare"] .hero-icon{display: grid; place-items: center; width: 70px; height: 70px; flex: 0 0 70px; border-radius: 22px; color: rgb(255, 255, 255); background: linear-gradient(145deg, rgb(52, 211, 153), rgb(4, 120, 87)); box-shadow: rgba(4, 120, 87, 0.23) 0px 14px 27px; font-size: 36px;}
 [data-minas-plugin="quickshare"] .status-pill{display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 999px; color: rgb(89, 109, 104); background: rgb(233, 240, 238); font-size: 11px; font-weight: 800;}
 [data-minas-plugin="quickshare"] .status-pill i{width: 7px; height: 7px; border-radius: 50%; background: currentcolor;}
 [data-minas-plugin="quickshare"] .status-pill.online{color: rgb(8, 116, 95); background: rgb(217, 247, 237);}
 [data-minas-plugin="quickshare"] .status-pill.offline{color: rgb(180, 35, 24); background: rgb(255, 235, 232);}
-[data-minas-plugin="quickshare"] .tabs{position: sticky; top: max(8px,env(safe-area-inset-top)); z-index: 8; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 14px 0px 18px; padding: 5px; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 15px; background: rgba(7, 63, 53, 0.88); backdrop-filter: blur(18px); box-shadow: rgba(0, 0, 0, 0.15) 0px 8px 22px; touch-action: pan-y;}
-[data-minas-plugin="quickshare"] .tab{padding: 10px 5px; border: 0px; border-radius: 11px; color: rgba(255, 255, 255, 0.68); background: transparent; font-size: 13px; font-weight: 750;}
-[data-minas-plugin="quickshare"] .tab.active{color: var(--navy); background: rgb(255, 255, 255);}
 [data-minas-plugin="quickshare"] .page{display: none; min-width: 0px; animation: 0.17s ease 0s 1 normal none running quickshare-page-in;}
 [data-minas-plugin="quickshare"] .page.active{display: block;}
-@keyframes quickshare-page-in{0% { opacity: 0.4; transform: translateY(4px); }}
+@keyframes quickshare-page-in {
+  0% { opacity: 0.4; transform: translateY(4px); }
+}
 [data-minas-plugin="quickshare"] .panel{margin-bottom: 12px; padding: 18px; border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow);}
 [data-minas-plugin="quickshare"] .panel.compact{padding: 16px;}
 [data-minas-plugin="quickshare"] .panel-heading, [data-minas-plugin="quickshare"] .section-heading{display: flex; align-items: center; justify-content: space-between; gap: 13px;}
@@ -53,8 +48,7 @@
 [data-minas-plugin="quickshare"] .choice-grid{display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;}
 [data-minas-plugin="quickshare"] .choice-grid button{min-width: 0px; padding: 8px 3px; font-size: 11px;}
 [data-minas-plugin="quickshare"] .field-note{align-self: end; padding: 9px 0px; color: var(--muted); font-size: 11px; line-height: 1.5;}
-[data-minas-plugin="quickshare"] .primary-button, [data-minas-plugin="quickshare"] .secondary-button, [data-minas-plugin="quickshare"] .danger-button{min-height: 40px; padding: 9px 14px; border-radius: 12px; font-size: 12px; font-weight: 800;}
-[data-minas-plugin="quickshare"] .primary-button{border: 0px; color: rgb(255, 255, 255); background: linear-gradient(135deg, rgb(19, 169, 135), rgb(5, 112, 93));}
+[data-minas-plugin="quickshare"] .secondary-button, [data-minas-plugin="quickshare"] .danger-button{min-height: 40px; padding: 9px 14px; border-radius: 12px; font-size: 12px; font-weight: 800;}
 [data-minas-plugin="quickshare"] .secondary-button{border: 1px solid var(--line); color: var(--green-dark); background: var(--green-soft);}
 [data-minas-plugin="quickshare"] .danger-button{border: 1px solid rgba(201, 71, 71, 0.25); color: var(--red); background: rgba(201, 71, 71, 0.09);}
 [data-minas-plugin="quickshare"] .full{width: 100%; margin-top: 17px; min-height: 46px;}
@@ -78,7 +72,6 @@
 [data-minas-plugin="quickshare"] .share-actions{display: flex; min-width: 0px; max-width: 100%; flex-wrap: wrap; gap: 7px; margin-top: 13px;}
 [data-minas-plugin="quickshare"] .share-actions button, [data-minas-plugin="quickshare"] .share-actions a{min-width: 0px; min-height: 36px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; color: var(--green-dark); background: var(--surface); font-size: 11px; font-weight: 800; text-align: center; text-decoration: none; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] .share-actions .revoke{color: var(--red);}
-[data-minas-plugin="quickshare"] footer{padding: 24px 0px 3px; color: rgba(255, 255, 255, 0.58); font-size: 11px; text-align: center;}
 [data-minas-plugin="quickshare"] .modal-backdrop{position: fixed; inset: 0px; z-index: 30; background: rgba(3, 24, 19, 0.55); backdrop-filter: blur(4px); touch-action: none;}
 [data-minas-plugin="quickshare"] .sheet{position: fixed; right: 0px; bottom: 0px; left: 0px; z-index: 31; display: flex; width: min(100%, 720px); max-height: min(88dvh, 850px); margin: 0px auto; padding-right: env(safe-area-inset-right); padding-bottom: max(14px,env(safe-area-inset-bottom)); padding-left: env(safe-area-inset-left); overflow: hidden; flex-direction: column; border-radius: 24px 24px 0px 0px; background: var(--bg); box-shadow: rgba(0, 0, 0, 0.3) 0px -20px 70px;}
 [data-minas-plugin="quickshare"] .sheet-handle{width: 42px; height: 4px; flex: 0 0 4px; margin: 9px auto 4px; border-radius: 4px; background: var(--line);}
@@ -105,71 +98,39 @@
 [data-minas-plugin="quickshare"] .toast.show{opacity: 1; transform: translate(-50%, 0px);}
 [data-minas-plugin="quickshare"] .toast.error{background: rgb(142, 52, 52);}
 [data-minas-plugin="quickshare"] .minas-plugin-body.modal-open{overflow: hidden;}
-@media (max-width: 560px) {[data-minas-plugin="quickshare"] .hero{min-height: 130px; padding: 18px;}
-[data-minas-plugin="quickshare"] .hero-icon{width: 58px; height: 58px; flex-basis: 58px;}
+@media (max-width: 560px){
 [data-minas-plugin="quickshare"] .choice-grid{grid-template-columns: repeat(3, 1fr);}
 [data-minas-plugin="quickshare"] .form-grid{grid-template-columns: 1fr;}
 [data-minas-plugin="quickshare"] .form-grid .wide{grid-column: auto;}
 [data-minas-plugin="quickshare"] .field-note{padding-top: 0px;}
 [data-minas-plugin="quickshare"] .share-actions > *{flex: 1 1 90px; text-align: center;}
-[data-minas-plugin="quickshare"] .shell{padding-left: max(13px,env(safe-area-inset-left)); padding-right: max(13px,env(safe-area-inset-right));}}
-[data-minas-plugin="quickshare"].desktop-client, [data-minas-plugin="quickshare"].desktop-client .minas-plugin-body{width: 100%; height: 100%; min-height: 100%; overflow: hidden;}
-[data-minas-plugin="quickshare"].desktop-client .shell{height: 100%; min-height: 0px; overflow: hidden auto; overscroll-behavior-y: contain;}
-[data-minas-plugin="quickshare"].desktop-client .shell{font-size: 15px;}
-[data-minas-plugin="quickshare"].desktop-client .shell p, [data-minas-plugin="quickshare"].desktop-client .shell .tab, [data-minas-plugin="quickshare"].desktop-client .shell .field-title, [data-minas-plugin="quickshare"].desktop-client .shell .field-label span, [data-minas-plugin="quickshare"].desktop-client .shell .form-grid label > span, [data-minas-plugin="quickshare"].desktop-client .shell .selected-path, [data-minas-plugin="quickshare"].desktop-client .shell .share-title p{font-size: 14px;}
-[data-minas-plugin="quickshare"].desktop-client .shell .eyebrow, [data-minas-plugin="quickshare"].desktop-client .shell .chip, [data-minas-plugin="quickshare"].desktop-client .shell .badge, [data-minas-plugin="quickshare"].desktop-client .shell .field-note, [data-minas-plugin="quickshare"].desktop-client .shell footer{font-size: 12px;}
+[data-minas-plugin="quickshare"] .shell{padding-left: max(13px,env(safe-area-inset-left)); padding-right: max(13px,env(safe-area-inset-right));}
+}
 [data-minas-plugin="quickshare"] .records-heading{min-width: 0px; flex-wrap: wrap;}
 [data-minas-plugin="quickshare"] .records-heading > div{min-width: 0px;}
 [data-minas-plugin="quickshare"] .records-heading .danger-button{flex: 0 0 auto; min-height: 36px; padding: 7px 11px;}
-@media (prefers-color-scheme: dark) {[data-minas-plugin="quickshare"]:not(.desktop-client) .minas-plugin-body{background: radial-gradient(circle at 105% -5%,rgba(52,211,153,.18),transparent 33rem),linear-gradient(180deg,#073f35 0,#0a3f35 170px,var(--bg) 340px);}
-[data-minas-plugin="quickshare"]:not(.desktop-client) .hero{border-color: rgba(255, 255, 255, 0.1); background: linear-gradient(145deg, rgb(27, 48, 43), rgb(23, 61, 51));}
+@media (prefers-color-scheme: dark){
 [data-minas-plugin="quickshare"]:not(.desktop-client) .security-note{color: rgb(227, 199, 117); background: rgb(59, 50, 28);}
 [data-minas-plugin="quickshare"]:not(.desktop-client) .warning-note{color: rgb(227, 199, 117); background: rgb(58, 46, 24);}
 [data-minas-plugin="quickshare"]:not(.desktop-client) .loading, [data-minas-plugin="quickshare"]:not(.desktop-client) .empty-state{background: rgba(24, 37, 34, 0.8);}
-[data-minas-plugin="quickshare"]:not(.desktop-client) footer{color: var(--muted);}}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame{position: relative; display: flex; width: 100%; height: 100%; min-width: 0px; min-height: 0px; overflow: hidden; contain: layout paint; isolation: isolate; color: var(--text); background: linear-gradient(rgb(7, 63, 53) 0px, rgb(11, 91, 77) 170px, rgb(255, 255, 255) 340px);}
+[data-minas-plugin="quickshare"]:not(.desktop-client) footer{color: var(--muted);}
+}
 [data-minas-plugin="quickshare"]:not(.desktop-client){background-color: var(--bg);}
-[data-minas-plugin="quickshare"].desktop-client{color-scheme: light;}
-[data-minas-plugin="quickshare"].desktop-client .minas-plugin-body{background: rgb(255, 255, 255);}
-[data-minas-plugin="quickshare"].desktop-client .shell > footer{color: rgb(98, 108, 120);}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .shell{position: relative; inset: auto; flex: 1 1 0px; width: 0px; max-width: none; height: 100%; max-height: 100%; min-width: 0px; min-height: 0px; margin: 0px; padding: 18px 22px 34px; overflow: hidden auto; overscroll-behavior-y: contain; scrollbar-gutter: stable;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .shell > *{width: min(100%, 1120px); max-width: 1120px; margin-right: auto; margin-left: auto;}
-[data-minas-plugin="quickshare"]{--disabled-bg: #e8ebef; --disabled-text: #626c78; --disabled-border: #cbd1d8;}
-@media (prefers-color-scheme: dark) {[data-minas-plugin="quickshare"]:not(.desktop-client){--disabled-bg: #303740; --disabled-text: #aab2bd; --disabled-border: #48515e;}}
 [data-minas-plugin="quickshare"] .minas-plugin-body button:disabled{color: var(--disabled-text) !important; background: var(--disabled-bg) !important; border-color: var(--disabled-border) !important; box-shadow: none !important; opacity: 1 !important; cursor: not-allowed !important;}
 [data-minas-plugin="quickshare"] .minas-plugin-body button:disabled.button-loading, [data-minas-plugin="quickshare"] .minas-plugin-body button:disabled[aria-busy="true"]{cursor: progress !important;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .tabs{position: relative; inset: auto; display: flex; flex: 0 0 190px; width: 190px; height: 100%; min-height: 0px; flex-direction: column; align-items: stretch; gap: 6px; margin: 0px; padding: 22px 12px; overflow: hidden auto; border-top: 0px; border-bottom: 0px; border-left: 0px; border-image: none; border-right: 1px solid var(--line); border-radius: 0px; background: var(--surface); box-shadow: none; backdrop-filter: none;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .tabs::before{content: "文件快传"; display: block; margin: 2px 10px 14px; color: var(--green-dark); font-size: 13px; font-weight: 800;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .tabs .tab{width: 100%; flex: 0 0 auto; color: var(--text); text-align: left; font-size: 14px;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .tabs .tab.active{color: var(--green-dark); background: var(--green-soft);}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame.desktop-compact{flex-direction: column;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame.desktop-compact > .tabs{flex: 0 0 auto; width: 100%; height: auto; max-height: 35%; flex-direction: row; padding: 8px; overflow-x: auto; border-right: 0px; border-bottom: 1px solid var(--line);}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame.desktop-compact > .tabs::before{display: none;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame.desktop-compact > .tabs .tab{width: auto; flex: 1 0 auto; text-align: center;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame.desktop-compact > .shell{width: 100%; height: 0px; padding: 14px 14px 30px;}
-[data-minas-plugin="quickshare"].desktop-client.dialog-scroll-locked .desktop-frame > .shell{overflow-y: hidden;}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .modal, [data-minas-plugin="quickshare"].desktop-client .desktop-frame > .sheet, [data-minas-plugin="quickshare"].desktop-client .desktop-frame > .dialog, [data-minas-plugin="quickshare"].desktop-client .desktop-frame > .detail-sheet, [data-minas-plugin="quickshare"].desktop-client .desktop-frame > .mi-picker-sheet, [data-minas-plugin="quickshare"].desktop-client .desktop-frame > .mi-confirm-dialog{max-width: calc(100% - 28px); max-height: calc(100% - 28px);}
 [data-minas-plugin="quickshare"] .section-heading.section-toolbar{min-width: 0px; margin: 0px 0px 14px; padding: 12px 14px; flex-wrap: wrap; gap: 10px 14px; border: 1px solid var(--line); border-radius: 16px; color: var(--text); background: var(--surface);}
 [data-minas-plugin="quickshare"] .section-toolbar > div{min-width: 0px; flex: 1 1 150px;}
 [data-minas-plugin="quickshare"] .section-heading.section-toolbar p{margin: 0px; color: var(--text); line-height: 1.6; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] .section-toolbar h2{margin: 0px 0px 4px;}
 [data-minas-plugin="quickshare"] .section-heading.section-toolbar > button{flex: 0 0 auto; max-width: 100%; min-height: 44px; margin-left: auto; white-space: normal;}
 [data-minas-plugin="quickshare"]:not(.desktop-client) .section-toolbar h2{display: none;}
-[data-minas-plugin="quickshare"] footer{color: var(--muted);}
-[data-minas-plugin="quickshare"].desktop-client .desktop-frame > .shell > .hero{margin-bottom: 18px;}
 [data-minas-plugin="quickshare"] button[aria-busy="true"]{display: inline-flex; align-items: center; justify-content: center; gap: 7px;}
 [data-minas-plugin="quickshare"] button[aria-busy="true"]::before{content: ""; width: 12px; height: 12px; flex: 0 0 12px; border-width: 2px; border-style: solid; border-color: currentcolor transparent currentcolor currentcolor; border-image: none; border-radius: 50%; animation: 0.8s linear 0s infinite normal none running quickshare-service-spin;}
-@keyframes quickshare-service-spin{100% { transform: rotate(360deg); }}
+@keyframes quickshare-service-spin {
+  100% { transform: rotate(360deg); }
+}
 [data-minas-plugin="quickshare"] #confirmModal{width: min(380px, -28px + 100vw);}
 [data-minas-plugin="quickshare"] #confirmModal h2{font-size: 22px; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] #confirmModal p{margin-top: 8px; font-size: 14px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] #confirmModal .dialog-actions{grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr); margin-top: 18px;}
 [data-minas-plugin="quickshare"] #confirmModal button{min-width: 0px; min-height: 44px; white-space: normal; overflow-wrap: anywhere;}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control{display: inline-flex; align-items: center; justify-content: center; gap: 0px; width: 43px; height: 43px; min-height: 43px; flex: 0 0 43px; padding: 0px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--surface-solid,var(--surface)); line-height: 1;}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control svg{display: block; width: 22px; height: 22px; fill: none; stroke: currentcolor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control:active{transform: rotate(45deg);}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control:focus-visible{outline: 2px solid var(--accent,var(--teal-dark,#2563c9)); outline-offset: 3px;}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control[aria-busy="true"] svg{display: none;}
-[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control[aria-busy="true"]::before{margin: 0px;}
-@media (prefers-reduced-motion: reduce) {[data-minas-plugin="quickshare"] .minas-plugin-body button.refresh-control:active{transform: none;}}
-[data-minas-plugin="quickshare"].desktop-client .minas-plugin-body button.refresh-control{flex-basis: 38px; width: 38px; height: 38px; min-height: 38px;}

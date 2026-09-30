@@ -1,44 +1,19 @@
-/* Dialogs stay within the visible window on Android, iOS and desktop. */
-.modal-backdrop {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  animation: quickshare-overlay-in .14s ease-out both;
+/* Plugin-specific components. Shared chrome/theme live in palette.css. */
+[data-minas-plugin="quickshare"] .modal-backdrop{backdrop-filter: none; animation: 0.14s ease-out 0s 1 normal both running quickshare-overlay-in;}
+[data-minas-plugin="quickshare"] .sheet{inset: 50% auto auto 50%; width: min(720px, -28px + 100vw); max-height: calc(100dvh - 28px); margin: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px; border: 1px solid var(--line); border-radius: 22px; box-shadow: rgba(0, 0, 0, 0.28) 0px 24px 64px; transform: translate(-50%, -50%); animation: 0.16s cubic-bezier(0.2, 0.7, 0.2, 1) 0s 1 normal both running quickshare-dialog-in;}
+[data-minas-plugin="quickshare"] .sheet-handle{display: none;}
+[data-minas-plugin="quickshare"] .sheet .file-list{min-height: 0px; flex: 1 1 auto;}
+[data-minas-plugin="quickshare"] .dialog{width: min(390px, -28px + 100vw); max-height: calc(100dvh - 28px); animation: 0.16s cubic-bezier(0.2, 0.7, 0.2, 1) 0s 1 normal both running quickshare-dialog-in;}
+[data-minas-plugin="quickshare"].dialog-scroll-locked, [data-minas-plugin="quickshare"].dialog-scroll-locked .minas-plugin-body{overflow: hidden; overscroll-behavior: none;}
+[data-minas-plugin="quickshare"] .sheet, [data-minas-plugin="quickshare"] .dialog{overscroll-behavior: contain;}
+@keyframes quickshare-overlay-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
-.sheet {
-  top: 50%;
-  right: auto;
-  bottom: auto;
-  left: 50%;
-  width: min(720px, calc(100vw - 28px));
-  max-height: calc(100vh - 28px);
-  max-height: calc(100dvh - 28px);
-  margin: 0;
-  padding-right: 0;
-  padding-bottom: 0;
-  padding-left: 0;
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  box-shadow: 0 24px 64px rgba(0,0,0,.28);
-  transform: translate(-50%, -50%);
-  animation: quickshare-dialog-in .16s cubic-bezier(.2,.7,.2,1) both;
-}
-.sheet-handle { display: none; }
-.sheet .file-list { min-height: 0; flex: 1 1 auto; }
-.dialog {
-  width: min(390px, calc(100vw - 28px));
-  max-height: calc(100vh - 28px);
-  max-height: calc(100dvh - 28px);
-  animation: quickshare-dialog-in .16s cubic-bezier(.2,.7,.2,1) both;
-}
-html.dialog-scroll-locked, html.dialog-scroll-locked body { overflow: hidden; overscroll-behavior: none; }
-html.dialog-scroll-locked:not(.desktop-client) body { position: fixed; top: var(--dialog-scroll-top, 0px); left: 0; right: 0; width: 100%; }
-html.desktop-client.dialog-scroll-locked .shell { overflow-y: hidden; }
-.sheet, .dialog { overscroll-behavior: contain; }
-@keyframes quickshare-overlay-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes quickshare-dialog-in {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(.985); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  0% { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(0.985); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
-@media (prefers-reduced-motion: reduce) {
-  .modal-backdrop, .sheet, .dialog { animation: none; }
+@media (prefers-reduced-motion: reduce){
+[data-minas-plugin="quickshare"] .modal-backdrop, [data-minas-plugin="quickshare"] .sheet, [data-minas-plugin="quickshare"] .dialog{animation: auto ease 0s 1 normal none running none;}
 }
