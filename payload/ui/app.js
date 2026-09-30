@@ -1,5 +1,6 @@
 (function(){
 'use strict';
+var document = window.XiaomiPluginClient.document;
 var state={kind:'download',path:'',expiry:86400,browsePath:'',shares:[],running:null,serviceBusy:false};
 var toastTimer=null,modalType='',confirmCallback=null,lastFocus=null;
 function id(name){return document.getElementById(name)}
