@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_NAME='quickshare'
 PLUGIN_LABEL='文件快传'
-PLUGIN_VERSION='1.1.23'
+PLUGIN_VERSION='1.1.24'
 UNINSTALL_NOTE='停止该用户的分享服务，现有分享链接失效；分享记录先备份，已上传的用户文件保留。'
 
 # Shared frontend; keep this section consistent across the four manage.sh files.
@@ -503,7 +503,7 @@ chmod 0600 "$VAR/server.secret" "$VAR/shares.json"
 
 digest="$TMP/digest.$$"; find "$SRC" -type f | LC_ALL=C sort | while IFS= read -r f; do sha256sum "$f" | cut -d ' ' -f 1; done > "$digest"
 abstract=$(sha256sum "$digest" | cut -d ' ' -f 1); rm -f "$digest"; size=$(du -sk "$SRC" | awk '{print $1*1024}'); now=$(date +%s)
-jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的临时文件分享",developer:"Local",publisher:"Local",changelog:"统一六插件视觉规范、全宽桌面布局、手机深色主题与样式隔离",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
+jq -n --arg version "$PLUGIN_VERSION" --arg port "$PORT" --arg abstract "$abstract" --argjson timestamp "$now" --argjson size "$size" '{plugin:"quickshare",name:"文件快传",id:19092,version:$version,tags:["tool"],timestamp:$timestamp,desc:"带密码、有效期和次数限制的文件与文件夹分享",developer:"Local",publisher:"Local",changelog:"新增文件夹流式 ZIP 分享，保留目录结构及密码、有效期、次数限制",system:false,size:$size,port:$port,type:"standard",forceupgrade:false,ext:{admin:true},hotplug:["net"],abstract:$abstract}' > "$HOME_DIR/INFO"
 
 rm -f "$WEB_LINK"; ln -s "$SRC/ui" "$WEB_LINK"
 python3 "$PAYLOAD/make_icon.py" "$ICON"; chmod 0644 "$ICON"

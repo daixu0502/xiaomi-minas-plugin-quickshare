@@ -118,9 +118,15 @@ class Store:
         return salt, digest
 
     def create(self, kind, relative, password, expires_in, max_uses):
-        if kind not in ("download", "upload"): raise ShareError("分享类型无效")
+        if kind not in ("download", "folder", "upload"): raise ShareError("分享类型无效")
         expected = "file" if kind == "download" else "dir"
         target, normalized = self.resolve_path(relative, expected)
+        if kind == "folder":
+            from folder_archive import open_folder
+            try:
+                with open_folder(self, normalized): pass
+            except OSError as exc:
+                raise ShareError("无法分享此文件夹：请检查读取权限，且路径不能包含符号链接") from exc
         try: expires_in = int(expires_in); max_uses = int(max_uses)
         except (TypeError, ValueError) as exc: raise ShareError("有效期或次数无效") from exc
         if expires_in < 300 or expires_in > MAX_EXPIRES: raise ShareError("有效期必须在 5 分钟到 30 天之间")

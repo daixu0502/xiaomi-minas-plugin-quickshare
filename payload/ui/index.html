@@ -9,9 +9,9 @@
   <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#171a20" media="(prefers-color-scheme: dark)">
   <title>文件快传</title>
-  <link rel="stylesheet" href="style.css?v=1.1.23&amp;ui=compact-metrics-20260930">
-  <link rel="stylesheet" href="modal.css?v=1.1.23">
-  <link rel="stylesheet" href="palette.css?v=1.1.23&amp;ui=compact-metrics-20260930">
+  <link rel="stylesheet" href="style.css?v=1.1.24&amp;ui=folder-share-20261009">
+  <link rel="stylesheet" href="modal.css?v=1.1.24">
+  <link rel="stylesheet" href="palette.css?v=1.1.24&amp;ui=folder-share-20261009">
 </head>
 <body><div data-minas-plugin="quickshare"><div class="minas-plugin-body">
   <main class="shell">
@@ -30,8 +30,8 @@
 
     <section id="page-create" class="page active">
       <article class="panel">
-        <div class="panel-heading"><div><h3>分享类型</h3><p>下载单个文件，或允许朋友上传到指定文件夹。</p></div></div>
-        <div id="kindSwitch" class="segmented"><button class="active" data-kind="download">文件下载</button><button data-kind="upload">上传入口</button></div>
+        <div class="panel-heading"><div><h3>分享类型</h3><p>分享文件、整个文件夹，或接收朋友上传的文件。</p></div></div>
+        <div id="kindSwitch" class="segmented"><button class="active" data-kind="download">文件下载</button><button data-kind="folder">文件夹分享</button><button data-kind="upload">上传入口</button></div>
       </article>
 
       <article class="panel">
@@ -44,7 +44,7 @@
           <label class="wide"><span>访问密码（可选）</span><input id="password" type="password" minlength="4" maxlength="128" autocomplete="new-password" placeholder="至少 4 位；留空表示无需密码"></label>
           <div class="wide"><span class="field-title">有效期</span><div id="expiryChoices" class="choice-grid"><button data-value="3600">1 小时</button><button data-value="21600">6 小时</button><button class="active" data-value="86400">1 天</button><button data-value="259200">3 天</button><button data-value="604800">7 天</button></div></div>
           <label><span id="usesLabel">最多下载次数</span><input id="maxUses" type="number" inputmode="numeric" min="0" max="1000" value="3"></label>
-          <div class="field-note">填写 0 表示有效期内不限次数。每次成功下载或上传计为一次。</div>
+          <div class="field-note">填写 0 表示有效期内不限次数。下载开始传输即计一次，中断重试再次计次；整个文件夹 ZIP 计一次。上传成功计一次。</div>
         </div>
         <button id="createButton" class="primary-button full" type="button">生成临时链接</button>
       </article>
@@ -71,7 +71,7 @@
       <article class="panel compact"><h3>路由器端口转发</h3><p class="router-help">协议选择 TCP，内网主机填写本设备 IP，内网端口使用上方“局域网地址”中的端口；公网端口可以自定义。然后将完整公网地址填写到上方。</p></article>
     </section>
 
-    <footer id="version">插件版本 1.1.23</footer>
+    <footer id="version">插件版本 1.1.24</footer>
   </main>
 
   <div id="modalBackdrop" class="modal-backdrop" hidden></div>
@@ -95,8 +95,8 @@
   </section>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="client-bridge.js?v=1.1.23&amp;ui=compact-metrics-20260930"></script>
-  <script src="app.js?v=1.1.23&amp;ui=compact-metrics-20260930"></script>
+  <script src="client-bridge.js?v=1.1.24&amp;ui=folder-share-20261009"></script>
+  <script src="app.js?v=1.1.24&amp;ui=folder-share-20261009"></script>
   <script>
     (function () {
       var document = window.XiaomiPluginClient.document;

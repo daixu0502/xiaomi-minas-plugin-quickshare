@@ -18,6 +18,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from quickshare_lib import ShareError, Store
+from folder_archive import open_folder, inventory, write_zip
 
 MAX_UPLOAD = 20 * 1024 * 1024 * 1024
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{32}$")
@@ -40,6 +41,7 @@ class Server(ThreadingHTTPServer):
     allow_reuse_address = True
     def __init__(self, address, handler, store, secret):
         super().__init__(address, handler); self.store=store; self.secret=secret
+        self.archive_slots = threading.BoundedSemaphore(2)
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "QuickShare/1.0"
@@ -130,6 +132,11 @@ class Handler(BaseHTTPRequestHandler):
             try: target,_=self.server.store.resolve_path(record["path"],"file"); size=format_size(target.stat().st_size)
             except (ShareError,OSError): return self.unavailable("not_found")
             body=f'''<div class="card"><div class="icon">↓</div><h1>{html.escape(record["name"])}</h1><p>分享者允许你下载这个文件。</p><div class="meta">文件大小：{size}<br>下载限制：{remaining}</div><a class="button" href="/d/{token}">下载文件</a><small>链接达到有效期或次数限制后会自动失效。</small></div>'''
+        elif record["kind"]=="folder":
+            try:
+                with open_folder(self.server.store, record["path"]): pass
+            except (ShareError,OSError): return self.unavailable("not_found")
+            body=f'''<div class="card"><div class="icon">▰</div><h1>{html.escape(record["name"])}</h1><p>下载整个文件夹，保留文件和子目录结构。</p><div class="meta">下载格式：ZIP（不压缩，减少设备负载）<br>下载限制：{remaining}</div><a class="button" href="/d/{token}">下载文件夹 ZIP</a><small>包含下载时的文件夹内容，不含隐藏文件、符号链接或特殊文件。最多 10000 个文件和子目录、64 层目录。开始传输计一次，浏览页面不计次；中断重试会再次计次，不支持断点续传。扫描较大文件夹需要一些时间，下载时请勿修改源文件。</small></div>'''
         else:
             body=f'''<div class="card"><div class="icon">↑</div><h1>上传文件</h1><p>文件会直接保存到分享者指定的文件夹。</p><div class="meta">上传限制：{remaining}<br>单个文件最大：20 GB</div><input id="file" type="file"><button id="upload" type="button">开始上传</button><div class="progress"><div id="bar" class="bar"></div></div><small id="message">上传过程中请保持页面打开。</small></div><script>
 (function(){{var b=document.getElementById('upload'),f=document.getElementById('file'),bar=document.getElementById('bar'),msg=document.getElementById('message');b.onclick=function(){{if(!f.files.length){{msg.textContent='请先选择文件';return}}var file=f.files[0],x=new XMLHttpRequest();b.disabled=true;msg.textContent='正在上传 '+file.name;x.open('POST','/upload/{token}?name='+encodeURIComponent(file.name));x.setRequestHeader('Content-Type','application/octet-stream');x.upload.onprogress=function(e){{if(e.lengthComputable)bar.style.width=Math.round(e.loaded/e.total*100)+'%'}};x.onload=function(){{b.disabled=false;try{{var r=JSON.parse(x.responseText);msg.textContent=r.ok?'上传完成：'+r.name:(r.error||'上传失败')}}catch(e){{msg.textContent='上传失败'}}}};x.onerror=function(){{b.disabled=false;msg.textContent='网络中断，上传失败'}};x.send(file)}}}})();
@@ -137,9 +144,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_html(record["name"],body)
 
     def download(self, token):
-        record,status=self.valid_record(token,"download")
+        record,status=self.valid_record(token)
         if status!="active": return self.unavailable(status)
+        if record.get("kind") not in ("download", "folder"): return self.unavailable("wrong_type")
         if not self.authorized(record): return self.share_page(token)
+        if record["kind"] == "folder": return self.download_folder(record)
         try: target,_=self.server.store.resolve_path(record["path"],"file"); size=target.stat().st_size
         except (ShareError,OSError): return self.unavailable("not_found")
         try: self.server.store.consume(token,"download",self.client_address[0])
@@ -154,6 +163,33 @@ class Handler(BaseHTTPRequestHandler):
                     if not chunk: break
                     self.wfile.write(chunk)
         except (BrokenPipeError,ConnectionResetError): pass
+
+    def download_folder(self, record):
+        if not self.server.archive_slots.acquire(blocking=False):
+            return self.send_html("请稍后重试", '<div class="card"><h1>文件夹下载繁忙</h1><p>最多同时下载两个文件夹，请稍后重试；本次不计下载次数。</p></div>', 503, {"Retry-After":"10"})
+        started = False
+        try:
+            with open_folder(self.server.store, record["path"]) as fd:
+                entries = inventory(fd)
+                # Recheck expiry/revocation/count after scanning, atomically reserve one use.
+                self.server.store.consume(record["token"], "folder", self.client_address[0])
+                disposition="attachment; filename*=UTF-8''"+quote(record["name"]+".zip",safe="")
+                started = True
+                self.close_connection = True
+                self.connection.settimeout(60)
+                self.security_headers("application/zip", extra={"Content-Disposition":disposition,"Accept-Ranges":"none","Connection":"close"})
+                write_zip(self.wfile, fd, record["name"], entries)
+        except (ShareError, OSError, ValueError) as exc:
+            if started:
+                self.close_connection = True
+                self.log_message("folder download interrupted (%s)", type(exc).__name__)
+            elif isinstance(exc, ShareError) and str(exc) in ("expired", "revoked", "exhausted", "not_found"):
+                self.unavailable(str(exc))
+            else:
+                message=str(exc) if isinstance(exc, ShareError) else "文件夹不存在、读取权限不足或内容发生变化，请联系分享者检查。"
+                self.send_html("无法下载文件夹", '<div class="card"><h1>无法下载文件夹</h1><p>'+html.escape(message)+'</p><small>本次未计下载次数。</small></div>', 409)
+        finally:
+            self.server.archive_slots.release()
 
     def do_POST(self):
         parts=self.path_parts()
