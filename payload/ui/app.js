@@ -88,11 +88,11 @@ function renderShares(){
     actions.appendChild(copy);
     var open=el('a','','打开');open.href=share.url;open.target='_blank';open.rel='noreferrer';actions.appendChild(open);
     if(share.status==='active'){
-      var revoke=el('button','revoke','立即失效');revoke.type='button';
+      var revoke=el('button','revoke quickshare-danger-action','立即失效');revoke.type='button';
       revoke.addEventListener('click',function(){confirmAction('使分享失效','失效后原链接将立即无法访问，是否继续？',function(){request('revoke',{id:share.id}).then(function(){toast('分享已失效');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)})})});
       actions.appendChild(revoke);
     }
-    var remove=el('button','revoke','删除记录');remove.type='button';
+    var remove=el('button','revoke quickshare-danger-action','删除记录');remove.type='button';
     remove.addEventListener('click',function(){
       confirmAction('删除分享记录',share.status==='active'?'删除后该分享链接将立即失效，记录无法恢复；原文件不会删除。是否继续？':'记录删除后无法恢复；原文件不会删除。是否继续？',function(){
         request('delete',{id:share.id}).then(function(){toast('记录已删除');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)});

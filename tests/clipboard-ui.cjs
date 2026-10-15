@@ -4,11 +4,13 @@ const {chromium}=require('playwright');
 const ui=path.resolve(__dirname,'../payload/ui');
 const cases=[
  {name:'desktop-focus-rejected',desktop:true,legacy:'ok',modern:'reject'},
+ {name:'desktop-host-style',desktop:true,legacy:'ok',modern:'reject',hostStyles:true},
  {name:'desktop-modern-fallback',desktop:true,legacy:'false',modern:'ok'},
  {name:'desktop-manual',desktop:true,legacy:'false',modern:'reject',manual:true},
  {name:'desktop-exceptions',desktop:true,legacy:'throw',modern:'throw',manual:true},
  {name:'desktop-success-then-denied',desktop:true,legacy:'ok',modern:'reject',recordManual:true},
  {name:'mobile-modern',legacy:'false',modern:'ok'},
+ {name:'mobile-dark',legacy:'false',modern:'ok',dark:true},
  {name:'mobile-fallback',legacy:'ok',modern:'reject'},
  {name:'mobile-manual',legacy:'false',modern:'reject',manual:true},
  {name:'http-legacy',desktop:true,legacy:'ok',modern:'reject',http:true}
@@ -17,7 +19,7 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.EDGE_PATH});
  try{for(const profile of cases.filter(item=>!process.env.QUICKSHARE_CASE||item.name===process.env.QUICKSHARE_CASE)){
-  const context=await browser.newContext({viewport:profile.desktop?{width:870,height:600}:{width:390,height:844},isMobile:!profile.desktop,hasTouch:!profile.desktop,userAgent:profile.desktop?'SmartStorage Electron/30':'Mozilla/5.0 Android Mobile Chrome'});
+  const context=await browser.newContext({viewport:profile.desktop?{width:870,height:600}:{width:390,height:844},colorScheme:profile.dark?'dark':'light',isMobile:!profile.desktop,hasTouch:!profile.desktop,userAgent:profile.desktop?'SmartStorage Electron/30':'Mozilla/5.0 Android Mobile Chrome'});
   await context.addInitScript(policy=>{
    window.__copies={modern:[],legacy:[],selected:[]};window.__copyPolicy=policy;
    const nativeDoc=document;
@@ -38,7 +40,7 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
     if(profile.desktop)assert.equal(request.headers().authorization,'test-auth');
     const action=url.searchParams.get('action');let result={ok:true};
     const existing={id:'existing',url:shareUrl,name:'example.txt',path:'data/example.txt',kind:'download',status:'active',uses:0,max_uses:3,expires_at:1893456000};
-    if(action==='status')Object.assign(result,{running:true,pluginVersion:'1.1.27',baseUrl:'https://share.example.test',activeShares:1,totalShares:1});
+    if(action==='status')Object.assign(result,{running:true,pluginVersion:'1.1.28',baseUrl:'https://share.example.test',activeShares:1,totalShares:1});
     else if(action==='list')result.shares=[existing];
     else if(action==='settings_get')Object.assign(result,{externalBase:'',lanUrl:'http://192.0.2.1:19092'});
     else if(action==='browse')Object.assign(result,{path:'data',entries:[{type:'file',name:'example.txt',path:'data/example.txt',size:12}]});
@@ -48,12 +50,12 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
    }
    if(!/^(index\.html|[\w-]+\.(css|js))$/.test(name))return route.abort();
    let body=fs.readFileSync(path.join(ui,name),'utf8');
-   if(name==='index.html')body=body.replace('<body>','<body><style>html,body{height:100%;margin:0}</style>');
+   if(name==='index.html')body=body.replace('<body>','<body><style>html,body{height:100%;margin:0}'+(profile.hostStyles?'.share-actions button{color:#18785c!important}':'')+'</style>');
    if(name==='app.js')body='window.XiaomiPluginClient.document=new Proxy(window.XiaomiPluginClient.document,{get:function(t,k){if(k==="execCommand")return function(){throw Error("Use the node ownerDocument");};return t[k];}});\n'+body;
    return route.fulfill({body,contentType:name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html'});
   });
   await page.goto((profile.http?'http:':'https:')+'//quickshare-ui.test/index.html');
-  await page.waitForFunction(()=>document.querySelector('#version').textContent==='插件版本 1.1.27');
+  await page.waitForFunction(()=>document.querySelector('#version').textContent==='插件版本 1.1.28');
   await page.locator('#browseButton').click();await page.locator('.file-row').click();await page.locator('#createButton').click();
   await page.locator('#linkModal').waitFor({state:'visible'});
   assert.equal(await page.locator('#createdLink').inputValue(),shareUrl);
@@ -79,8 +81,12 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
   const actions=page.locator('.share-actions').first();
   await actions.locator('a').waitFor();
   const typography=await actions.locator('button,a').evaluateAll(items=>items.map(e=>{const s=getComputedStyle(e);return {font:s.fontFamily,size:s.fontSize,weight:s.fontWeight,line:s.lineHeight,padding:s.padding,border:s.borderRadius,height:e.getBoundingClientRect().height};}));
-  assert.equal(typography.length,4);for(const style of typography)assert.deepEqual(style,typography[0],'Open link must use the same font, padding and height as action buttons');
+  assert.equal(typography.length,4);for(const style of typography){const {height,...text}=style,{height:referenceHeight,...referenceText}=typography[0];assert.deepEqual(text,referenceText,'Action controls must use the same font and spacing');assert(Math.abs(height-referenceHeight)<0.5,'Action controls must have the same visual height');}
   assert.equal(typography[0].size,'14px');assert.equal(typography[0].weight,'600');assert(typography[0].height>=40);
+  const colors=await actions.evaluate(e=>{const probe=e.ownerDocument.createElement('span');e.append(probe);probe.style.color='var(--red)';const red=getComputedStyle(probe).color;probe.remove();return {red,actions:[...e.children].map(x=>getComputedStyle(x).color)};});
+  assert.equal(await actions.locator('.quickshare-danger-action').count(),2);
+  assert.equal(colors.actions[2],colors.red,'Revoke must stay red under client button styles');assert.equal(colors.actions[3],colors.red,'Delete must stay red under client button styles');
+  assert.notEqual(colors.actions[0],colors.red);assert.notEqual(colors.actions[1],colors.red);
   assert.equal(await actions.locator('a').getAttribute('href'),shareUrl);assert.equal(await actions.locator('a').getAttribute('target'),'_blank');
   if(process.env.QUICKSHARE_SCREENSHOT_DIR&&profile.name==='desktop-focus-rejected'){fs.mkdirSync(process.env.QUICKSHARE_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.QUICKSHARE_SCREENSHOT_DIR,'record-actions-desktop.png')});}
   await page.locator('.share-actions button').first().click();
