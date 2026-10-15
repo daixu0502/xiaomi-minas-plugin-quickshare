@@ -29,8 +29,38 @@ function browse(path){id('chooseFolder').hidden=true;id('browserList').className
 function renderBrowser(entries){var list=id('browserList');list.textContent='';list.className='file-list';var visible=entries.filter(function(item){return item.type==='dir'||state.kind==='download'});if(!visible.length){list.className='file-list empty-state';list.textContent=state.kind==='download'?'此目录没有可分享的文件':'此目录没有子文件夹';return}visible.forEach(function(item){var button=el('button','file-row');button.type='button';button.appendChild(el('span','file-icon',item.type==='dir'?'▰':'▤'));var copy=el('span','file-copy');copy.appendChild(el('strong','',item.name));copy.appendChild(el('span','',item.type==='dir'?'文件夹':formatSize(item.size)));button.appendChild(copy);button.addEventListener('click',function(){if(item.type==='dir')browse(item.path);else selectPath(item.path)});list.appendChild(button)})}
 function selectPath(path){state.path=path;id('selectedPath').textContent=path;id('selectedPath').className='selected-path';closeModal()}
 
-function createShare(){var password=id('password').value,maxUses=Number(id('maxUses').value);if(!state.path){toast('请先'+targetTitle(),true);return}if(password&&password.length<4){toast('密码至少需要 4 位',true);return}if(!Number.isInteger(maxUses)||maxUses<0||maxUses>1000){toast('次数必须是 0–1000 的整数',true);return}var button=id('createButton');button.disabled=true;request('create',{kind:state.kind,path:state.path,password:password,expiresIn:state.expiry,maxUses:maxUses}).then(function(data){id('password').value='';id('createdLink').value=data.share.url;openModal('linkModal');loadStatus(false);loadShares()}).catch(function(error){toast(error.message,true)}).finally(function(){button.disabled=false})}
-function copyText(value){if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(value);var area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();var ok=document.execCommand('copy');document.body.removeChild(area);return ok?Promise.resolve():Promise.reject(new Error('复制失败'))}
+function showShareLink(value,title){id('createdLink').value=value;id('linkTitle').textContent=title||'链接已生成';id('copyHelp').hidden=true;openModal('linkModal')}
+function selectLink(field){try{field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);return field.selectionStart===0&&field.selectionEnd===field.value.length}catch(error){return false}}
+function legacyCopy(value){
+  // Use the DOM node's real document: Electron's micro-app may proxy globals.
+  var field=id('createdLink'),owner=field.ownerDocument,view=owner.defaultView,previous=owner.activeElement;
+  var temporary=id('linkModal').hidden||field.value!==value,area=temporary?owner.createElement('textarea'):field;
+  try{
+    if(view)try{view.focus()}catch(error){}
+    if(temporary){area.value=value;area.readOnly=true;area.tabIndex=-1;area.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(area)}
+    return selectLink(area)&&owner.execCommand('copy')===true;
+  }catch(error){return false}
+  finally{if(temporary){area.remove();if(previous&&previous.isConnected)try{previous.focus({preventScroll:true})}catch(error){}}}
+}
+function copyText(value){
+  // Desktop first tries synchronous copy while the click gesture is active.
+  if(document.documentElement.classList.contains('desktop-client')&&legacyCopy(value))return Promise.resolve();
+  var owner=id('createdLink').ownerDocument,view=owner.defaultView||window;
+  try{
+    if(view.isSecureContext&&view.navigator.clipboard&&typeof view.navigator.clipboard.writeText==='function'){
+      return Promise.resolve(view.navigator.clipboard.writeText(value)).catch(function(){if(!legacyCopy(value))throw new Error('manual-copy-required')});
+    }
+  }catch(error){}
+  return legacyCopy(value)?Promise.resolve():Promise.reject(new Error('manual-copy-required'));
+}
+function manualCopy(value){
+  clearTimeout(toastTimer);id('toast').className='toast';id('toast').textContent='';
+  if(modalType!=='linkModal')showShareLink(value,'复制分享链接');
+  var selected=selectLink(id('createdLink'));
+  id('copyHelp').textContent=selected?'自动复制未成功，链接已选中。电脑按 Ctrl+C（Mac 按 ⌘C），手机可长按复制。':'自动复制未成功。请选中上方链接，电脑按 Ctrl+C（Mac 按 ⌘C），手机可长按复制。';
+  id('copyHelp').hidden=false;
+}
+function createShare(){var password=id('password').value,maxUses=Number(id('maxUses').value);if(!state.path){toast('请先'+targetTitle(),true);return}if(password&&password.length<4){toast('密码至少需要 4 位',true);return}if(!Number.isInteger(maxUses)||maxUses<0||maxUses>1000){toast('次数必须是 0–1000 的整数',true);return}var button=id('createButton');button.disabled=true;request('create',{kind:state.kind,path:state.path,password:password,expiresIn:state.expiry,maxUses:maxUses}).then(function(data){id('password').value='';showShareLink(data.share.url);loadStatus(false);loadShares()}).catch(function(error){toast(error.message,true)}).finally(function(){button.disabled=false})}
 
 function loadShares(){var list=id('shareList');list.className='stack loading';list.textContent='正在读取分享记录…';return request('list').then(function(data){state.shares=data.shares||[];renderShares()}).catch(function(error){list.textContent=error.message;toast(error.message,true)})}
 function renderShares(){
@@ -54,7 +84,7 @@ function renderShares(){
     card.appendChild(meta);
     var actions=el('div','share-actions');
     var copy=el('button','','复制链接');copy.type='button';
-    copy.addEventListener('click',function(){copyText(share.url).then(function(){toast('链接已复制')}).catch(function(error){toast(error.message,true)})});
+    copy.addEventListener('click',function(){copyText(share.url).then(function(){toast('链接已复制')}).catch(function(){manualCopy(share.url)})});
     actions.appendChild(copy);
     var open=el('a','','打开');open.href=share.url;open.target='_blank';open.rel='noreferrer';actions.appendChild(open);
     if(share.status==='active'){
@@ -76,7 +106,7 @@ function renderShares(){
 document.querySelectorAll('.tab').forEach(function(tab){tab.addEventListener('click',function(){activatePage(tab.dataset.page)})});
 document.querySelectorAll('#kindSwitch button').forEach(function(button){button.addEventListener('click',function(){updateKind(button.dataset.kind)})});
 document.querySelectorAll('#expiryChoices button').forEach(function(button){button.addEventListener('click',function(){state.expiry=Number(button.dataset.value);document.querySelectorAll('#expiryChoices button').forEach(function(item){item.classList.toggle('active',item===button)})})});
-id('refresh').addEventListener('click',function(){loadStatus(true);loadShares()});id('browseButton').addEventListener('click',openBrowser);id('browserBack').addEventListener('click',function(){browse(parentPath(state.browsePath))});id('chooseFolder').addEventListener('click',function(){selectPath(state.browsePath)});id('closeBrowser').addEventListener('click',closeModal);id('createButton').addEventListener('click',createShare);id('closeLink').addEventListener('click',closeModal);id('copyCreatedLink').addEventListener('click',function(){copyText(id('createdLink').value).then(function(){toast('链接已复制');closeModal()}).catch(function(error){toast(error.message,true)})});
+id('refresh').addEventListener('click',function(){loadStatus(true);loadShares()});id('browseButton').addEventListener('click',openBrowser);id('browserBack').addEventListener('click',function(){browse(parentPath(state.browsePath))});id('chooseFolder').addEventListener('click',function(){selectPath(state.browsePath)});id('closeBrowser').addEventListener('click',closeModal);id('createButton').addEventListener('click',createShare);id('closeLink').addEventListener('click',closeModal);id('copyCreatedLink').addEventListener('click',function(){copyText(id('createdLink').value).then(function(){toast('链接已复制');closeModal()}).catch(function(){manualCopy(id('createdLink').value)})});
 id('clearShares').addEventListener('click',function(){
   confirmAction('清空分享记录','将删除全部分享记录，所有仍有效的链接会立即失效。此操作无法恢复，但不会删除原文件或已上传的文件。是否继续？',function(){
     request('clear').then(function(data){toast('已清空 '+data.deleted+' 条记录');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)});

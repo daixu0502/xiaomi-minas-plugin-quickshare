@@ -94,6 +94,7 @@
 [data-minas-plugin="quickshare"] .success-icon{color: var(--green-dark); background: var(--green-soft);}
 [data-minas-plugin="quickshare"] .danger-icon{color: var(--red); background: rgba(201, 71, 71, 0.12);}
 [data-minas-plugin="quickshare"] .dialog textarea{height: 82px; margin-top: 15px; font-size: 13px;}
+[data-minas-plugin="quickshare"] #copyHelp{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--soft);color:var(--muted);font:13px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;text-align:left;overflow-wrap:anywhere}
 [data-minas-plugin="quickshare"] .dialog-actions{display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 16px;}
 [data-minas-plugin="quickshare"] .toast{position: fixed; left: 50%; bottom: max(24px,env(safe-area-inset-bottom)); z-index: 50; max-width: calc(100% - 36px); padding: 11px 15px; border-radius: 12px; color: rgb(255, 255, 255); background: rgb(21, 63, 55); box-shadow: rgba(0, 0, 0, 0.25) 0px 12px 35px; font-size: 13px; opacity: 0; pointer-events: none; transform: translate(-50%, 20px); transition: 0.18s;}
 [data-minas-plugin="quickshare"] .toast.show{opacity: 1; transform: translate(-50%, 0px);}

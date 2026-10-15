@@ -38,7 +38,7 @@ def get(path):
 
 
 before = {s['id']: s for s in api('list', {})['shares']}
-assert api('status', {})['pluginVersion'] == '1.1.24'
+assert api('status', {})['pluginVersion'] == json.loads((home/'INFO').read_text())['version']
 with tempfile.TemporaryDirectory(prefix='quickshare-folder-check-', dir=Path('/nas/pool0') / user / 'data') as directory:
     folder = Path(directory)
     (folder / 'empty').mkdir()
