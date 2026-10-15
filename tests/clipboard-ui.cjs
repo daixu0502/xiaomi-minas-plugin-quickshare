@@ -38,7 +38,7 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
     if(profile.desktop)assert.equal(request.headers().authorization,'test-auth');
     const action=url.searchParams.get('action');let result={ok:true};
     const existing={id:'existing',url:shareUrl,name:'example.txt',path:'data/example.txt',kind:'download',status:'active',uses:0,max_uses:3,expires_at:1893456000};
-    if(action==='status')Object.assign(result,{running:true,pluginVersion:'1.1.26',baseUrl:'https://share.example.test',activeShares:1,totalShares:1});
+    if(action==='status')Object.assign(result,{running:true,pluginVersion:'1.1.27',baseUrl:'https://share.example.test',activeShares:1,totalShares:1});
     else if(action==='list')result.shares=[existing];
     else if(action==='settings_get')Object.assign(result,{externalBase:'',lanUrl:'http://192.0.2.1:19092'});
     else if(action==='browse')Object.assign(result,{path:'data',entries:[{type:'file',name:'example.txt',path:'data/example.txt',size:12}]});
@@ -53,7 +53,7 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
    return route.fulfill({body,contentType:name.endsWith('.css')?'text/css':name.endsWith('.js')?'application/javascript':'text/html'});
   });
   await page.goto((profile.http?'http:':'https:')+'//quickshare-ui.test/index.html');
-  await page.waitForFunction(()=>document.querySelector('#version').textContent==='插件版本 1.1.26');
+  await page.waitForFunction(()=>document.querySelector('#version').textContent==='插件版本 1.1.27');
   await page.locator('#browseButton').click();await page.locator('.file-row').click();await page.locator('#createButton').click();
   await page.locator('#linkModal').waitFor({state:'visible'});
   assert.equal(await page.locator('#createdLink').inputValue(),shareUrl);
@@ -76,6 +76,13 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
   assert(!((await page.locator('body').innerText()).includes('Document is not focused')));
   if(profile.recordManual)await page.evaluate(()=>{window.__copyPolicy.legacy='false';window.__copyPolicy.modern='reject';});
   await page.locator('.tab[data-page=records]').click();
+  const actions=page.locator('.share-actions').first();
+  await actions.locator('a').waitFor();
+  const typography=await actions.locator('button,a').evaluateAll(items=>items.map(e=>{const s=getComputedStyle(e);return {font:s.fontFamily,size:s.fontSize,weight:s.fontWeight,line:s.lineHeight,padding:s.padding,border:s.borderRadius,height:e.getBoundingClientRect().height};}));
+  assert.equal(typography.length,4);for(const style of typography)assert.deepEqual(style,typography[0],'Open link must use the same font, padding and height as action buttons');
+  assert.equal(typography[0].size,'14px');assert.equal(typography[0].weight,'600');assert(typography[0].height>=40);
+  assert.equal(await actions.locator('a').getAttribute('href'),shareUrl);assert.equal(await actions.locator('a').getAttribute('target'),'_blank');
+  if(process.env.QUICKSHARE_SCREENSHOT_DIR&&profile.name==='desktop-focus-rejected'){fs.mkdirSync(process.env.QUICKSHARE_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.QUICKSHARE_SCREENSHOT_DIR,'record-actions-desktop.png')});}
   await page.locator('.share-actions button').first().click();
   if(profile.manual||profile.recordManual){await page.locator('#copyHelp').waitFor({state:'visible'});assert.equal(await page.locator('#createdLink').inputValue(),shareUrl);assert.equal(await page.locator('#linkTitle').innerText(),'复制分享链接');assert.equal(await page.locator('#toast').innerText(),'');}
   else{await page.waitForFunction(()=>document.querySelector('#toast').textContent==='链接已复制');assert(await page.locator('#linkModal').isHidden());}
