@@ -17,7 +17,7 @@
 [data-minas-plugin="quickshare"] h3{font-size: 16px;}
 [data-minas-plugin="quickshare"] p{color: var(--muted); font-size: 13px; line-height: 1.55;}
 [data-minas-plugin="quickshare"] .icon-button{display: grid; place-items: center; width: 43px; height: 43px; padding: 0px; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 14px; color: rgb(255, 255, 255); background: rgba(255, 255, 255, 0.11); font-size: 24px; line-height: 1;}
-[data-minas-plugin="quickshare"] .status-pill{display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 999px; color: rgb(89, 109, 104); background: rgb(233, 240, 238); font-size: 11px; font-weight: 800;}
+[data-minas-plugin="quickshare"] .status-pill{display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 999px; color: rgb(89, 109, 104); background: rgb(233, 240, 238); font-size:13px; font-weight: 800;}
 [data-minas-plugin="quickshare"] .status-pill i{width: 7px; height: 7px; border-radius: 50%; background: currentcolor;}
 [data-minas-plugin="quickshare"] .status-pill.online{color: rgb(8, 116, 95); background: rgb(217, 247, 237);}
 [data-minas-plugin="quickshare"] .status-pill.offline{color: rgb(180, 35, 24); background: rgb(255, 235, 232);}
@@ -41,20 +41,20 @@
 [data-minas-plugin="quickshare"] .selected-path.empty{color: var(--muted);}
 [data-minas-plugin="quickshare"] .form-grid{display: grid; grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr); gap: 14px;}
 [data-minas-plugin="quickshare"] .form-grid .wide{grid-column: 1 / -1;}
-[data-minas-plugin="quickshare"] .field-title, [data-minas-plugin="quickshare"] .field-label span, [data-minas-plugin="quickshare"] .form-grid label > span{display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; font-weight: 800;}
+[data-minas-plugin="quickshare"] .field-title, [data-minas-plugin="quickshare"] .field-label span, [data-minas-plugin="quickshare"] .form-grid label > span{display: block; margin-bottom: 7px; color: var(--muted); font-size:13px; font-weight: 800;}
 [data-minas-plugin="quickshare"] input, [data-minas-plugin="quickshare"] textarea{width: 100%; border: 1px solid var(--line); border-radius: 12px; outline: 0px; color: var(--text); background: var(--surface); font-size: 16px;}
 [data-minas-plugin="quickshare"] input{height: 44px; padding: 0px 12px;}
 [data-minas-plugin="quickshare"] textarea{padding: 11px; resize: none;}
 [data-minas-plugin="quickshare"] input:focus, [data-minas-plugin="quickshare"] textarea:focus{border-color: var(--green); box-shadow: rgba(7, 129, 107, 0.13) 0px 0px 0px 3px;}
 [data-minas-plugin="quickshare"] .choice-grid{display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;}
-[data-minas-plugin="quickshare"] .choice-grid button{min-width: 0px; padding: 8px 3px; font-size: 11px;}
-[data-minas-plugin="quickshare"] .field-note{align-self: end; padding: 9px 0px; color: var(--muted); font-size: 11px; line-height: 1.5;}
-[data-minas-plugin="quickshare"] .secondary-button, [data-minas-plugin="quickshare"] .danger-button{min-height: 40px; padding: 9px 14px; border-radius: 12px; font-size: 12px; font-weight: 800;}
+[data-minas-plugin="quickshare"] .choice-grid button{min-width: 0px; padding: 8px 3px; font-size:13px;}
+[data-minas-plugin="quickshare"] .field-note{align-self: end; padding: 9px 0px; color: var(--muted); font-size:13px; line-height: 1.5;}
+[data-minas-plugin="quickshare"] .secondary-button, [data-minas-plugin="quickshare"] .danger-button{min-height: 40px; padding: 9px 14px; border-radius: 12px; font-size:13px; font-weight: 800;}
 [data-minas-plugin="quickshare"] .secondary-button{border: 1px solid var(--line); color: var(--green-dark); background: var(--green-soft);}
 [data-minas-plugin="quickshare"] .danger-button{border: 1px solid rgba(201, 71, 71, 0.25); color: var(--red); background: rgba(201, 71, 71, 0.09);}
 [data-minas-plugin="quickshare"] .full{width: 100%; margin-top: 17px; min-height: 46px;}
 [data-minas-plugin="quickshare"] .button-row{display: flex; flex-wrap: wrap; gap: 8px;}
-[data-minas-plugin="quickshare"] .security-note, [data-minas-plugin="quickshare"] .warning-note{padding: 13px 14px; border-radius: 14px; font-size: 12px; line-height: 1.6;}
+[data-minas-plugin="quickshare"] .security-note, [data-minas-plugin="quickshare"] .warning-note{padding: 13px 14px; border-radius: 14px; font-size:13px; line-height: 1.6;}
 [data-minas-plugin="quickshare"] .security-note{color: rgb(128, 98, 29); background: rgb(255, 244, 216);}
 [data-minas-plugin="quickshare"] .warning-note{margin-top: 13px; color: rgb(139, 94, 22); background: rgb(255, 241, 215);}
 [data-minas-plugin="quickshare"] .router-help{margin-top: 7px;}
@@ -66,10 +66,10 @@
 [data-minas-plugin="quickshare"] .share-title{min-width: 0px; max-width: 100%; overflow: hidden;}
 [data-minas-plugin="quickshare"] .share-title h3{max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 [data-minas-plugin="quickshare"] .share-title p{max-width: 100%; margin-top: 4px; overflow-wrap: anywhere; word-break: break-word;}
-[data-minas-plugin="quickshare"] .badge{min-width: 0px; max-width: 100%; padding: 5px 8px; border-radius: 999px; color: rgb(8, 116, 95); background: rgb(217, 247, 237); font-size: 10px; font-weight: 800; overflow-wrap: anywhere;}
+[data-minas-plugin="quickshare"] .badge{min-width: 0px; max-width: 100%; padding: 5px 8px; border-radius: 999px; color: rgb(8, 116, 95); background: rgb(217, 247, 237); font-size:13px; font-weight: 800; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] .badge.inactive{color: rgb(138, 74, 69); background: rgb(254, 232, 229);}
 [data-minas-plugin="quickshare"] .share-meta{display: flex; min-width: 0px; max-width: 100%; flex-wrap: wrap; gap: 6px; margin-top: 12px;}
-[data-minas-plugin="quickshare"] .chip{min-width: 0px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--bg); font-size: 10px; overflow-wrap: anywhere;}
+[data-minas-plugin="quickshare"] .chip{min-width: 0px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); background: var(--bg); font-size:13px; overflow-wrap: anywhere;}
 [data-minas-plugin="quickshare"] .share-actions{display: flex; min-width: 0px; max-width: 100%; flex-wrap: wrap; gap: 7px; margin-top: 13px;}
 [data-minas-plugin="quickshare"] .share-actions button,[data-minas-plugin="quickshare"] .share-actions a{display:inline-flex;align-items:center;justify-content:center;min-width:0;min-height:40px;padding:9px 14px;border:1px solid var(--line);border-radius:12px;color:var(--green-dark);background:var(--surface);font-family:inherit;font-size:14px;font-weight:600;line-height:1.45;text-align:center;text-decoration:none;overflow-wrap:anywhere;}
 [data-minas-plugin="quickshare"] .share-actions button:focus-visible,[data-minas-plugin="quickshare"] .share-actions a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
@@ -82,15 +82,15 @@
 [data-minas-plugin="quickshare"] .sheet-header{display: flex; align-items: center; justify-content: space-between; padding: 12px 17px; border-bottom: 1px solid var(--line); background: var(--surface);}
 [data-minas-plugin="quickshare"] .close-button{display: grid; place-items: center; width: 37px; height: 37px; padding: 0px; border: 0px; border-radius: 50%; color: var(--muted); background: var(--bg); font-size: 23px;}
 [data-minas-plugin="quickshare"] .browser-toolbar{display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface);}
-[data-minas-plugin="quickshare"] .browser-toolbar button{flex: 0 0 auto; padding: 7px 9px; border: 0px; border-radius: 9px; color: var(--green-dark); background: var(--green-soft); font-size: 11px;}
-[data-minas-plugin="quickshare"] .browser-toolbar span{min-width: 0px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap;}
+[data-minas-plugin="quickshare"] .browser-toolbar button{flex: 0 0 auto; padding: 7px 9px; border: 0px; border-radius: 9px; color: var(--green-dark); background: var(--green-soft); font-size:13px;}
+[data-minas-plugin="quickshare"] .browser-toolbar span{min-width: 0px; overflow: hidden; color: var(--muted); font-size:13px; text-overflow: ellipsis; white-space: nowrap;}
 [data-minas-plugin="quickshare"] .choose-folder{margin: 0px 14px 8px;}
 [data-minas-plugin="quickshare"] .file-list{min-height: 130px; padding: 7px 12px; overflow: auto; overscroll-behavior: contain;}
 [data-minas-plugin="quickshare"] .file-row{display: flex; width: 100%; align-items: center; gap: 11px; min-height: 52px; padding: 10px; border-top: 0px; border-right: 0px; border-left: 0px; border-image: none; border-bottom: 1px solid var(--line); color: var(--text); background: transparent; text-align: left;}
 [data-minas-plugin="quickshare"] .file-icon{display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px; color: var(--green-dark); background: var(--green-soft);}
 [data-minas-plugin="quickshare"] .file-copy{min-width: 0px;}
 [data-minas-plugin="quickshare"] .file-copy strong{display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-[data-minas-plugin="quickshare"] .file-copy span{display: block; margin-top: 3px; color: var(--muted); font-size: 10px;}
+[data-minas-plugin="quickshare"] .file-copy span{display: block; margin-top: 3px; color: var(--muted); font-size:13px;}
 [data-minas-plugin="quickshare"] .dialog{position: fixed; top: 50%; left: 50%; z-index: 32; width: min(88%, 390px); max-height: calc(100dvh - 50px); padding: 23px 20px max(20px,env(safe-area-inset-bottom)); overflow: auto; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); box-shadow: rgba(0, 0, 0, 0.3) 0px 25px 75px; text-align: center; transform: translate(-50%, -50%);}
 [data-minas-plugin="quickshare"] .dialog > p{margin-top: 7px;}
 [data-minas-plugin="quickshare"] .success-icon, [data-minas-plugin="quickshare"] .danger-icon{display: grid; place-items: center; width: 48px; height: 48px; margin: 0px auto 13px; border-radius: 15px; font-size: 24px; font-weight: 900;}
