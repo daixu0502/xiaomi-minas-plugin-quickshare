@@ -3,13 +3,14 @@
 var document = window.XiaomiPluginClient.document;
 var state={kind:'download',path:'',expiry:86400,browsePath:'',shares:[],running:null,serviceBusy:false};
 var toastTimer=null,modalType='',confirmCallback=null,lastFocus=null;
+var extendingShare=null,extendBusy=false;
 function id(name){return document.getElementById(name)}
 function el(tag,className,text){var node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node}
 function toast(message,isError){var node=id('toast');node.textContent=message;node.className='toast show'+(isError?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(function(){node.className='toast'},2800)}
 function request(action,data){return window.XiaomiPluginClient.request({plugin:'quickshare',cgi:'quickshare.cgi',action:action,options:{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify(data||{})}}).then(function(response){return response.json().catch(function(){throw new Error('设备返回了无法解析的数据')})}).then(function(result){if(!result.ok)throw new Error(result.error||'操作失败');return result})}
 function restoreFocus(){if(!lastFocus||!document.documentElement.contains(lastFocus))return;var x=window.pageXOffset,y=window.pageYOffset;try{lastFocus.focus({preventScroll:true})}catch(error){lastFocus.focus()}if(window.pageXOffset!==x||window.pageYOffset!==y)window.scrollTo(x,y)}
 function openModal(type){lastFocus=document.activeElement;modalType=type;id('modalBackdrop').hidden=false;id(type).hidden=false;document.body.classList.add('modal-open')}
-function closeModal(){if(!modalType)return;id(modalType).hidden=true;id('modalBackdrop').hidden=true;document.body.classList.remove('modal-open');modalType='';restoreFocus()}
+function closeModal(){if(!modalType||(extendBusy&&modalType==='extendModal'))return;id(modalType).hidden=true;id('modalBackdrop').hidden=true;document.body.classList.remove('modal-open');modalType='';restoreFocus()}
 function confirmAction(title,message,callback){id('confirmTitle').textContent=title;id('confirmMessage').textContent=message;confirmCallback=callback;openModal('confirmModal')}
 function formatSize(bytes){var size=Number(bytes||0),units=['B','KB','MB','GB','TB'],i=0;while(size>=1024&&i<units.length-1){size/=1024;i++}return(i?size.toFixed(1):Math.round(size))+' '+units[i]}
 function formatTime(value){if(!value)return'—';var date=new Date(Number(value)*1000);return date.toLocaleString()}
@@ -64,6 +65,24 @@ function manualCopy(value){
 function createShare(){var password=id('password').value,maxUses=Number(id('maxUses').value);if(!state.path){toast('请先'+targetTitle(),true);return}if(password&&password.length<4){toast('密码至少需要 4 位',true);return}if(!Number.isInteger(maxUses)||maxUses<0||maxUses>1000){toast('次数必须是 0–1000 的整数',true);return}var button=id('createButton');button.disabled=true;request('create',{kind:state.kind,path:state.path,password:password,expiresIn:state.expiry,maxUses:maxUses}).then(function(data){id('password').value='';showShareLink(data.share.url);loadStatus(false);loadShares()}).catch(function(error){toast(error.message,true)}).finally(function(){button.disabled=false})}
 
 function loadShares(){var list=id('shareList');list.className='stack loading';list.textContent='正在读取分享记录…';return request('list').then(function(data){state.shares=data.shares||[];renderShares()}).catch(function(error){list.textContent=error.message;toast(error.message,true)})}
+function extendSeconds(){var selected=document.querySelector('#extendForm input[name="extendSeconds"]:checked');return selected?Number(selected.value):86400}
+function updateExtendPreview(){if(!extendingShare)return;id('extendOld').textContent=formatTime(extendingShare.expires_at);id('extendNew').textContent=formatTime(Math.max(Number(extendingShare.expires_at),Math.floor(Date.now()/1000))+extendSeconds())}
+function openExtend(share){
+  if(extendBusy)return;extendingShare=share;id('extendName').textContent=share.name;
+  id('extendForm').reset();id('extendError').hidden=true;updateExtendPreview();openModal('extendModal');
+}
+function setExtendBusy(on){extendBusy=on;id('extendSave').disabled=on;id('extendCancel').disabled=on;id('extendSave').setAttribute('aria-busy',String(on));document.querySelectorAll('#extendForm input').forEach(function(input){input.disabled=on})}
+id('extendForm').addEventListener('change',function(){id('extendError').hidden=true;updateExtendPreview()});
+id('extendCancel').addEventListener('click',closeModal);
+id('extendForm').addEventListener('submit',function(event){
+  event.preventDefault();if(extendBusy||!extendingShare)return;
+  var share=extendingShare;setExtendBusy(true);id('extendError').hidden=true;
+  request('extend',{id:share.id,seconds:extendSeconds(),expectedExpiresAt:share.expires_at}).then(function(data){
+    setExtendBusy(false);closeModal();extendingShare=null;toast('已延期至 '+formatTime(data.share.expires_at));loadShares();loadStatus(false);
+  }).catch(function(error){
+    var box=id('extendError');box.textContent=error.message;box.hidden=false;box.scrollIntoView({block:'nearest'});try{box.focus({preventScroll:true})}catch(e){box.focus()}
+  }).finally(function(){setExtendBusy(false)});
+});
 function renderShares(){
   var list=id('shareList');
   list.textContent='';list.className='stack';
@@ -88,6 +107,12 @@ function renderShares(){
     copy.addEventListener('click',function(){copyText(share.url).then(function(){toast('链接已复制')}).catch(function(){manualCopy(share.url)})});
     actions.appendChild(copy);
     var open=el('a','','打开');open.href=share.url;open.target='_blank';open.rel='noreferrer';actions.appendChild(open);
+    if(share.status==='active'||share.status==='expired'){
+      var extend=el('button','','延期');extend.type='button';
+      extend.disabled=Boolean(share.max_uses&&share.uses>=share.max_uses);
+      if(extend.disabled)extend.title='次数已用完，延期不会恢复次数';
+      extend.addEventListener('click',function(){openExtend(share)});actions.appendChild(extend);
+    }
     if(share.status==='active'){
       var revoke=el('button','revoke quickshare-danger-action','立即失效');revoke.type='button';
       revoke.addEventListener('click',function(){confirmAction('使分享失效','失效后原链接将立即无法访问，是否继续？',function(){request('revoke',{id:share.id}).then(function(){toast('分享已失效');loadShares();loadStatus(false)}).catch(function(error){toast(error.message,true)})})});

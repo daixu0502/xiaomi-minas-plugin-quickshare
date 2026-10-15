@@ -69,6 +69,20 @@ class FolderTests(unittest.TestCase):
         self.assertEqual(self.store.find_token(token)['uses'], 1)
         self.assertFalse(list(self.root.rglob('*.zip')))
 
+    def test_expired_share_extension_is_seen_by_running_http_server(self):
+        record=self.create(password='fixture-password')
+        self.store.mutate(lambda d:d['shares'][0].update(expires_at=1))
+        self.assertEqual(self.request('/s/'+record['token'])[0],404)
+        # A CGI request has its own Store instance; the running server must
+        # observe the atomic state replacement without needing a restart.
+        cgi_store=Store(self.store.state_dir,'u123')
+        extended=cgi_store.extend(record['id'],3600,1)
+        self.assertEqual(extended['token'],record['token'])
+        self.assertEqual(self.request('/s/'+record['token'])[0],200)
+        _,headers,_=self.request('/auth/'+record['token'],'POST','password=fixture-password')
+        cookie=headers['Set-Cookie'].split(';')[0]
+        self.assertEqual(self.request('/d/'+record['token'],headers={'Cookie':cookie})[0],200)
+
     def test_password(self):
         record = self.create(password='test1234')
         token = record['token']

@@ -213,6 +213,35 @@ class Store:
             raise ShareError("分享记录不存在")
         return self.mutate(update)
 
+    def extend(self, record_id, seconds, expected_expires_at):
+        """Extend one share under the same lock as consumption and revocation.
+
+        Keep its token, password, permissions and usage count. The expected
+        deadline prevents a repeated request from extending the record twice.
+        """
+        if not isinstance(record_id, str) or not record_id:
+            raise ShareError("请选择要延期的分享记录")
+        if type(seconds) is not int or not 300 <= seconds <= MAX_EXPIRES:
+            raise ShareError("每次延期必须在 5 分钟到 30 天之间")
+        if type(expected_expires_at) is not int or expected_expires_at <= 0:
+            raise ShareError("原到期时间无效，请刷新分享记录后重试")
+        def update(data):
+            for record in data["shares"]:
+                if not hmac.compare_digest(str(record.get("id", "")), record_id):
+                    continue
+                if not record.get("active", False):
+                    raise ShareError("此分享已手动失效，不能通过延期恢复")
+                maximum = int(record.get("max_uses", 0))
+                if maximum and int(record.get("uses", 0)) >= maximum:
+                    raise ShareError("此分享次数已用完，延期不会恢复次数，请重新创建分享")
+                current = int(record.get("expires_at", 0))
+                if current != expected_expires_at:
+                    raise ShareError("分享的到期时间已改变，请刷新记录；本次未重复延期")
+                record["expires_at"] = max(current, int(time.time())) + seconds
+                return dict(record)
+            raise ShareError("分享记录不存在")
+        return self.mutate(update)
+
     def delete(self, record_id):
         record_id = str(record_id or "")
         if not record_id: raise ShareError("请选择要删除的分享记录")

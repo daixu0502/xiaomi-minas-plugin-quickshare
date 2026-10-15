@@ -81,12 +81,12 @@ const shareUrl='https://share.example.test/s/clipboard-test-link';
   const actions=page.locator('.share-actions').first();
   await actions.locator('a').waitFor();
   const typography=await actions.locator('button,a').evaluateAll(items=>items.map(e=>{const s=getComputedStyle(e);return {font:s.fontFamily,size:s.fontSize,weight:s.fontWeight,line:s.lineHeight,padding:s.padding,border:s.borderRadius,height:e.getBoundingClientRect().height};}));
-  assert.equal(typography.length,4);for(const style of typography){const {height,...text}=style,{height:referenceHeight,...referenceText}=typography[0];assert.deepEqual(text,referenceText,'Action controls must use the same font and spacing');assert(Math.abs(height-referenceHeight)<0.5,'Action controls must have the same visual height');}
+  assert.equal(typography.length,5);for(const style of typography){const {height,...text}=style,{height:referenceHeight,...referenceText}=typography[0];assert.deepEqual(text,referenceText,'Action controls must use the same font and spacing');assert(Math.abs(height-referenceHeight)<0.5,'Action controls must have the same visual height');}
   assert.equal(typography[0].size,'14px');assert.equal(typography[0].weight,'600');assert(typography[0].height>=40);
   const colors=await actions.evaluate(e=>{const probe=e.ownerDocument.createElement('span');e.append(probe);probe.style.color='var(--red)';const red=getComputedStyle(probe).color;probe.remove();return {red,actions:[...e.children].map(x=>getComputedStyle(x).color)};});
   assert.equal(await actions.locator('.quickshare-danger-action').count(),2);
-  assert.equal(colors.actions[2],colors.red,'Revoke must stay red under client button styles');assert.equal(colors.actions[3],colors.red,'Delete must stay red under client button styles');
-  assert.notEqual(colors.actions[0],colors.red);assert.notEqual(colors.actions[1],colors.red);
+  assert.equal(colors.actions[3],colors.red,'Revoke must stay red under client button styles');assert.equal(colors.actions[4],colors.red,'Delete must stay red under client button styles');
+  assert.notEqual(colors.actions[0],colors.red);assert.notEqual(colors.actions[1],colors.red);assert.notEqual(colors.actions[2],colors.red);
   assert.equal(await actions.locator('a').getAttribute('href'),shareUrl);assert.equal(await actions.locator('a').getAttribute('target'),'_blank');
   if(process.env.QUICKSHARE_SCREENSHOT_DIR&&profile.name==='desktop-focus-rejected'){fs.mkdirSync(process.env.QUICKSHARE_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.QUICKSHARE_SCREENSHOT_DIR,'record-actions-desktop.png')});}
   await page.locator('.share-actions button').first().click();
