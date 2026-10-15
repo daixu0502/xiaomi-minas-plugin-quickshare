@@ -2,6 +2,7 @@
 import fcntl
 import hashlib
 import hmac
+import heapq
 import json
 import os
 import secrets
@@ -89,25 +90,32 @@ class Store:
         if expected == "dir" and not target.is_dir(): raise ShareError("请选择一个文件夹")
         return target, pure.as_posix()
 
-    def browse(self, relative=""):
+    def browse(self, relative="", offset=0, limit=200, dirs_only=False):
+        if type(offset) is not int or not 0 <= offset <= 1000000 or type(limit) is not int or not 1 <= limit <= 1000 or type(dirs_only) is not bool:
+            raise ShareError('分页参数无效')
         if not relative:
-            return {"path": "", "entries": self.roots()}
+            return {"path": "", "entries": self.roots(), "hasMore":False, "nextOffset":0}
         directory, normalized = self.resolve_path(relative, "dir")
-        entries = []
         try:
-            children = list(directory.iterdir())
+            with os.scandir(directory) as children:
+                def candidates():
+                    for item in children:
+                        if item.name.startswith('.') or item.is_symlink(): continue
+                        try:
+                            kind = 'dir' if item.is_dir(follow_symlinks=False) else 'file' if item.is_file(follow_symlinks=False) else None
+                            if kind and (not dirs_only or kind == 'dir'):
+                                yield {'name':item.name,'path':normalized+'/'+item.name,'type':kind}
+                        except OSError: continue
+                # Only sort a bounded prefix; stat file sizes on the visible page.
+                selected=heapq.nsmallest(offset+limit+1,candidates(),key=lambda row:(row['type']!='dir',row['name'].casefold(),row['name']))
         except PermissionError as exc:
             raise ShareError("没有权限读取此目录") from exc
-        for item in children:
-            if item.name.startswith(".") or item.is_symlink(): continue
+        entries=selected[offset:offset+limit]
+        for item in entries:
             try:
-                if item.is_dir(): kind, size = "dir", 0
-                elif item.is_file(): kind, size = "file", item.stat().st_size
-                else: continue
-            except OSError: continue
-            entries.append({"name": item.name, "path": normalized + "/" + item.name, "type": kind, "size": size})
-        entries.sort(key=lambda row: (row["type"] != "dir", row["name"].casefold()))
-        return {"path": normalized, "entries": entries[:1000]}
+                item['size']=0 if item['type']=='dir' else (directory/item['name']).stat(follow_symlinks=False).st_size
+            except OSError:item['size']=0
+        return {"path":normalized,"entries":entries,"hasMore":len(selected)>offset+limit,"nextOffset":offset+len(entries)}
 
     @staticmethod
     def _password(password):
@@ -155,9 +163,17 @@ class Store:
     def list(self): return self.read().get("shares", [])
 
     def find_token(self, token):
-        for record in self.list():
-            if hmac.compare_digest(str(record.get("token", "")), str(token)): return record
-        return None
+        with self.lock_file.open('a+') as lock:
+            fcntl.flock(lock.fileno(),fcntl.LOCK_SH)
+            try:
+                metadata=self.state_file.stat()
+                signature=(metadata.st_ino,metadata.st_size,metadata.st_mtime_ns)
+            except FileNotFoundError:signature=None
+            if not hasattr(self,'_token_index') or signature!=getattr(self,'_token_signature',None):
+                self._token_index={str(r.get('token','')):r for r in self._load_unlocked()['shares']}
+                self._token_signature=signature
+            record=self._token_index.get(str(token))
+            return dict(record) if record and hmac.compare_digest(str(record.get('token','')),str(token)) else None
 
     def verify_password(self, record, password):
         expected = str(record.get("password_hash", "")); salt = str(record.get("password_salt", ""))
