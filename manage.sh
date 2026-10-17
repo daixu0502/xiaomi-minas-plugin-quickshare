@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_NAME='quickshare'
 PLUGIN_LABEL='文件快传'
-PLUGIN_VERSION='1.1.32'
+PLUGIN_VERSION='1.1.33'
 UNINSTALL_NOTE='停止该用户的分享服务，现有分享链接失效；分享记录先备份，已上传的用户文件保留。'
 
 # Shared frontend; keep this section consistent across the four manage.sh files.
@@ -411,9 +411,6 @@ nas_uninstall() {
         nascenter)
             rm -f "/etc/sudoers.d/nascenter-$NAS_USER";;
     esac
-    if [ -f /data/.minas-privileged/component_admin.py ]; then
-        python3 /data/.minas-privileged/component_admin.py remove --plugin "$NAS_PLUGIN" --user "$NAS_USER" || nas_fail "公共组件登记移除失败"
-    fi
     rm -f "$NAS_WEB_ROOT/$NAS_USER/$NAS_PLUGIN"
     # Paths were checked in full by nas_check_user; repeat immediately before removal.
     nas_pool_path "$NAS_SRC" pluginsrc; nas_pool_path "$NAS_TMP" plugintmp
@@ -491,7 +488,6 @@ candidate=19092; while [ -z "$PORT" ] && [ "$candidate" -le 19191 ]; do if ! por
 [ -n "$PORT" ] || { echo "错误：19092-19191 没有可用端口" >&2; exit 1; }
 printf '%s\n' "$PORT" > "$PORT_FILE"; chmod 0600 "$PORT_FILE"; flock -u 8
 
-python3 "$PAYLOAD/common/component_admin.py" install --plugin "$PLUGIN_NAME" --user "$PLUGIN_USER" --payload "$PAYLOAD" --plugin-version "$PLUGIN_VERSION" || nas_fail "公共权限组件安装失败"
 stage="$SRC_PARENT/.$PLUGIN_NAME.new.$"; old="$SRC_PARENT/.$PLUGIN_NAME.old.$$"; rm -rf "$stage"; mkdir -p "$stage"
 cp -R "$PAYLOAD/files" "$stage/files"; cp -R "$PAYLOAD/ui" "$stage/ui"
 chmod 0755 "$stage/files/"*.sh "$stage/ui/quickshare.cgi"
