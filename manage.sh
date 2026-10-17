@@ -4,7 +4,7 @@ set -Eeuo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_NAME='quickshare'
 PLUGIN_LABEL='文件快传'
-PLUGIN_VERSION='1.1.33'
+PLUGIN_VERSION='1.1.34'
 UNINSTALL_NOTE='停止该用户的分享服务，现有分享链接失效；分享记录先备份，已上传的用户文件保留。'
 
 # Shared frontend; keep this section consistent across the four manage.sh files.
@@ -393,46 +393,14 @@ nas_uninstall() {
     done
     nas_remove_entry
     case "$NAS_PLUGIN" in
-        mihomo)
-            nas_port=$(sed -n 's/^MIXED_PORT=\([0-9][0-9]*\)$/\1/p' "$NAS_HOME/etc/ports.env" 2>/dev/null | head -n 1)
-            nas_helper=/data/plugin/.mihomo-system/mihomo-docker-proxy
-            if [ -x "$nas_helper" ] && [ -n "$nas_port" ]; then
-                "$nas_helper" disable "$nas_port" >/dev/null || nas_fail "无法撤销该用户的 Docker 代理。"
-            fi
-            rm -f "/etc/sudoers.d/mihomo-docker-proxy-$NAS_USER" "/etc/cron.d/mihomo-plugin-$NAS_USER"
-            if [ -f /etc/sudoers.d/mihomo-docker-proxy ] && grep -q "^$NAS_USER[[:space:]]" /etc/sudoers.d/mihomo-docker-proxy; then rm -f /etc/sudoers.d/mihomo-docker-proxy; fi
-            if [ -f /etc/cron.d/mihomo-plugin ] && grep -Fq "boot.sh $NAS_USER" /etc/cron.d/mihomo-plugin; then rm -f /etc/cron.d/mihomo-plugin; fi
-            nas_hotplug=$(jq -r '.settings.system_hotplug // empty' /etc/config/plugin)
-            if [ -n "$nas_hotplug" ]; then rm -f "$nas_hotplug/net/$NAS_USER.$NAS_PLUGIN"; fi;;
-        dockermanager)
-            rm -f "/etc/sudoers.d/dockermanager-$NAS_USER" "/etc/cron.d/dockermanager-$NAS_USER";;
         quickshare)
             rm -f "/etc/cron.d/quickshare-$NAS_USER";;
-        nascenter)
-            rm -f "/etc/sudoers.d/nascenter-$NAS_USER";;
     esac
     rm -f "$NAS_WEB_ROOT/$NAS_USER/$NAS_PLUGIN"
     # Paths were checked in full by nas_check_user; repeat immediately before removal.
     nas_pool_path "$NAS_SRC" pluginsrc; nas_pool_path "$NAS_TMP" plugintmp
     rm -rf "$NAS_SRC" "$NAS_TMP" "$NAS_HOME"
     if ! nas_other_users; then
-        case "$NAS_PLUGIN" in
-            mihomo)
-                if ! ls /etc/sudoers.d/mihomo-docker-proxy* >/dev/null 2>&1; then
-                    rm -f /data/plugin/.mihomo-system/mihomo-docker-proxy
-                    rmdir /data/plugin/.mihomo-system 2>/dev/null || true
-                fi;;
-            dockermanager)
-                if ! ls /etc/sudoers.d/dockermanager-u* >/dev/null 2>&1; then
-                    rm -f /data/plugin/.dockermanager-system/docker-manager-helper
-                    rmdir /data/plugin/.dockermanager-system 2>/dev/null || true
-                fi;;
-            nascenter)
-                if ! ls /etc/sudoers.d/nascenter-u* >/dev/null 2>&1; then
-                    rm -f /data/plugin/.nascenter-system/nas-center-helper
-                    rmdir /data/plugin/.nascenter-system 2>/dev/null || true
-                fi;;
-        esac
         rm -f "/data/plugin/www/icon/$NAS_PLUGIN.icon"
     fi
     systemctl reload crond.service >/dev/null 2>&1 || true
@@ -519,11 +487,13 @@ EOF
 chmod 0644 "$CRON"; systemctl reload crond.service >/dev/null 2>&1 || true
 chown -R "$PLUGIN_USER:$PLUGIN_USER" "$HOME_DIR" "$SRC" "$TMP"; chown -h "$PLUGIN_USER:$PLUGIN_USER" "$HOME_DIR/src" "$HOME_DIR/tmp" "$WEB_LINK"
 chmod 0700 "$HOME_DIR" "$VAR" "$SRC" "$TMP"; chmod 0755 "$SRC/ui"
+runuser -u "$PLUGIN_USER" -- python3 -B "$HOME_DIR/src/files/plugin_paths.py" --migrate "$HOME_DIR" || nas_fail "旧缓存迁移失败，未启动新服务"
 PLUG_USER="$PLUGIN_USER" PLUG_HOME_DIR="$HOME_DIR" PLUG_SRC_DIR="$SRC" "$SCRIPTS/control" start
 plugincenter -u "$PLUGIN_USER" -p "$PLUGIN_NAME" enable >/dev/null 2>&1 || true
 echo "文件快传 $PLUGIN_VERSION 已安装，局域网服务：http://设备IP:$PORT"
 echo "APP 插件清单：$LIST"
-echo "安装前清单备份：$backup"
+env PLUG_USER="$PLUGIN_USER" PLUG_NAME="$PLUGIN_NAME" PLUG_HOME_DIR="$HOME_DIR" PLUG_SRC_DIR="$SRC" PLUG_TMP_DIR="$TMP" PLUG_STATUS=unverified /usr/bin/plugin.sh verify || nas_fail "系统完整性校验失败"
+rm -f "$backup"
 NAS_INSTALL_SCRIPT
 }
 installer_emit_uninstall() {
